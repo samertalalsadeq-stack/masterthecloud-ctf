@@ -50,7 +50,7 @@ const ChallengeCard = ({ challenge, index }: { challenge: Challenge; index: numb
             language={challenge.codeLanguage || 'text'}
           >
             {({ className, style, tokens, getLineProps, getTokenProps }) => (
-              <pre className={cn(className, "text-sm rounded-md p-3 overflow-x-auto")} style={style}>
+              <pre className={cn(className, "text-sm rounded-md p-3 overflow-x-auto bg-gray-800/50")} style={style}>
                 {tokens.map((line, i) => (
                   <div key={i} {...getLineProps({ line })}>
                     {line.map((token, key) => (
@@ -147,12 +147,12 @@ export function ChallengesPage() {
               <Filter className="w-5 h-5 text-muted-foreground" />
               <h3 className="font-semibold">Filter Challenges</h3>
             </div>
-            <Select value={difficulty} onValueChange={(v) => handleFilterChange('difficulty', v)}>
+            <Select value={difficulty} onValueChange={(v) => handleFilterChange('difficulty', v === 'all' ? '' : v)}>
               <SelectTrigger className="w-full md:w-[180px]">
                 <SelectValue placeholder="Difficulty" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Difficulties</SelectItem>
+                <SelectItem value="all">All Difficulties</SelectItem>
                 <SelectItem value="Easy">Easy</SelectItem>
                 <SelectItem value="Medium">Medium</SelectItem>
                 <SelectItem value="Hard">Hard</SelectItem>
@@ -191,7 +191,11 @@ export function ChallengesPage() {
           )}
           <div className="flex justify-center mt-12">
             {data?.next && (
-              <Button onClick={() => handleFilterChange('cursor', data.next || '')}>
+              <Button onClick={() => {
+                const newParams = new URLSearchParams(searchParams);
+                newParams.set('cursor', data.next || '');
+                setSearchParams(newParams);
+              }}>
                 Load More
               </Button>
             )}
