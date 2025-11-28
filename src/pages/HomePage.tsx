@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, Trophy, Users, GitBranch, Award, UserCheck } from 'lucide-react';
+import { Shield, Trophy, Users, GitBranch, Award, UserCheck, LogIn } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,8 @@ import { api } from '@/lib/api-client';
 import type { ScoreboardEntry } from '@shared/types';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Toaster } from '@/components/ui/sonner';
+import { useUserStore } from '@/stores/userStore';
+import { LoginModal } from '@/components/LoginModal';
 const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], isLoading: boolean }) => (
   <Card className="w-full max-w-2xl bg-card/50 backdrop-blur-sm border-border/50">
     <CardHeader>
@@ -66,8 +69,11 @@ export function HomePage() {
     queryKey: ['scoreboard'],
     queryFn: () => api('/api/scoreboard'),
   });
+  const [isLoginModalOpen, setLoginModalOpen] = useState(false);
+  const isLoggedIn = useUserStore(s => s.isLoggedIn);
   return (
     <AppLayout>
+      <LoginModal open={isLoginModalOpen} onOpenChange={setLoginModalOpen} />
       <main className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-mesh opacity-10 dark:opacity-20 pointer-events-none" />
         <ThemeToggle />
@@ -86,11 +92,17 @@ export function HomePage() {
                 Hone your skills, solve challenges, and climb the leaderboard.
               </p>
               <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-                <Button asChild size="lg" className="btn-gradient px-8 py-4 text-lg font-semibold hover:-translate-y-0.5 transition-all duration-200">
-                  <Link to="/challenges">
-                    <Shield className="mr-2 h-5 w-5" /> View Challenges
-                  </Link>
-                </Button>
+                {!isLoggedIn ? (
+                  <Button onClick={() => setLoginModalOpen(true)} size="lg" className="btn-gradient px-8 py-4 text-lg font-semibold hover:-translate-y-0.5 transition-all duration-200">
+                    <LogIn className="mr-2 h-5 w-5" /> Login to Play
+                  </Button>
+                ) : (
+                  <Button asChild size="lg" className="btn-gradient px-8 py-4 text-lg font-semibold hover:-translate-y-0.5 transition-all duration-200">
+                    <Link to="/challenges">
+                      <Shield className="mr-2 h-5 w-5" /> View Challenges
+                    </Link>
+                  </Button>
+                )}
                 <Button asChild size="lg" variant="outline" className="px-8 py-4 text-lg font-semibold">
                   <Link to="/admin">
                     <UserCheck className="mr-2 h-5 w-5" /> Admin Panel
