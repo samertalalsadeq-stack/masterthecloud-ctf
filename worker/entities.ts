@@ -1,41 +1,49 @@
 /**
- * Minimal real-world demo: One Durable Object instance per entity (User, ChatBoard), with Indexes for listing.
+ * FlagForge CTF Entities
  */
 import { IndexedEntity } from "./core-utils";
-import type { User, Chat, ChatMessage } from "@shared/types";
-import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS } from "@shared/mock-data";
-
-// USER ENTITY: one DO instance per user
+import type { User, Challenge, Submission } from "@shared/types";
+import { MOCK_USERS, MOCK_CHALLENGES } from "@shared/mock-data";
+// USER ENTITY
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user";
   static readonly indexName = "users";
-  static readonly initialState: User = { id: "", name: "" };
+  static readonly initialState: User = { id: "", name: "", score: 0, solvedChallenges: [] };
   static seedData = MOCK_USERS;
 }
-
-// CHAT BOARD ENTITY: one DO instance per chat board, stores its own messages
-export type ChatBoardState = Chat & { messages: ChatMessage[] };
-
-const SEED_CHAT_BOARDS: ChatBoardState[] = MOCK_CHATS.map(c => ({
-  ...c,
-  messages: MOCK_CHAT_MESSAGES.filter(m => m.chatId === c.id),
-}));
-
-export class ChatBoardEntity extends IndexedEntity<ChatBoardState> {
-  static readonly entityName = "chat";
-  static readonly indexName = "chats";
-  static readonly initialState: ChatBoardState = { id: "", title: "", messages: [] };
-  static seedData = SEED_CHAT_BOARDS;
-
-  async listMessages(): Promise<ChatMessage[]> {
-    const { messages } = await this.getState();
-    return messages;
-  }
-
-  async sendMessage(userId: string, text: string): Promise<ChatMessage> {
-    const msg: ChatMessage = { id: crypto.randomUUID(), chatId: this.id, userId, text, ts: Date.now() };
-    await this.mutate(s => ({ ...s, messages: [...s.messages, msg] }));
-    return msg;
+// CHALLENGE ENTITY
+// The flag is stored in the entity state but not exposed in the Challenge type
+export type ChallengeState = Challenge & { flag: string };
+export class ChallengeEntity extends IndexedEntity<ChallengeState> {
+  static readonly entityName = "challenge";
+  static readonly indexName = "challenges";
+  static readonly initialState: ChallengeState = {
+    id: "",
+    title: "",
+    description: "",
+    points: 0,
+    difficulty: 'Easy',
+    tags: [],
+    createdAt: 0,
+    flag: "",
+  };
+  static seedData = MOCK_CHALLENGES;
+  // Method to get challenge data without the flag
+  public getChallengeData(): Challenge {
+    const { flag, ...challengeData } = this.state;
+    return challengeData;
   }
 }
-
+// SUBMISSION ENTITY
+export class SubmissionEntity extends IndexedEntity<Submission> {
+  static readonly entityName = "submission";
+  static readonly indexName = "submissions";
+  static readonly initialState: Submission = {
+    id: "",
+    challengeId: "",
+    userId: "",
+    userName: "",
+    ts: 0,
+    pointsAwarded: 0,
+  };
+}

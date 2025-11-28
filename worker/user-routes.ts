@@ -1,75 +1,134 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { UserEntity, ChatBoardEntity } from "./entities";
+import { UserEntity, ChallengeEntity, SubmissionEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-
+import { MOCK_CHALLENGES, MOCK_USERS } from "@shared/mock-data";
+import type { ScoreboardEntry, Submission, User } from "@shared/types";
+const ADMIN_TOKEN = 'secret-admin-token';
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
-  app.get('/api/test', (c) => c.json({ success: true, data: { name: 'CF Workers Demo' }}));
-
-  // USERS
-  app.get('/api/users', async (c) => {
-    await UserEntity.ensureSeed(c.env);
-    const cq = c.req.query('cursor');
-    const lq = c.req.query('limit');
-    const page = await UserEntity.list(c.env, cq ?? null, lq ? Math.max(1, (Number(lq) | 0)) : undefined);
-    return ok(c, page);
+  // --- Seeding ---
+  app.use('/api/*', async (c, next) => {
+    // Ensure data is seeded on first request
+    await Promise.all([
+      UserEntity.ensureSeed(c.env),
+      ChallengeEntity.ensureSeed(c.env),
+    ]);
+    await next();
   });
-
+  // --- Challenges ---
+  app.get('/api/challenges', async (c) => {
+    const { items } = await ChallengeEntity.list(c.env);
+    // Strip flags for public listing
+    const publicChallenges = items.map(challenge => {
+      const { flag, ...rest } = challenge;
+      return rest;
+    });
+    return ok(c, publicChallenges);
+  });
+  app.get('/api/challenges/:id', async (c) => {
+    const id = c.req.param('id');
+    const challenge = new ChallengeEntity(c.env, id);
+    if (!await challenge.exists()) return notFound(c, 'Challenge not found');
+    const state = await challenge.getState();
+    const { flag, ...publicChallenge } = state;
+    const isAdmin = c.req.header('x-admin-token') === ADMIN_TOKEN;
+    return ok(c, isAdmin ? state : publicChallenge);
+  });
+  app.post('/api/challenges/:id/submit', async (c) => {
+    const { userId, flag } = await c.req.json<{ userId: string, flag: string }>();
+    if (!isStr(userId) || !isStr(flag)) return bad(c, 'userId and flag are required');
+    const challengeId = c.req.param('id');
+    const challengeEntity = new ChallengeEntity(c.env, challengeId);
+    if (!await challengeEntity.exists()) return notFound(c, 'Challenge not found');
+    const userEntity = new UserEntity(c.env, userId);
+    if (!await userEntity.exists()) return notFound(c, 'User not found');
+    const user = await userEntity.getState();
+    if (user.solvedChallenges.includes(challengeId)) {
+      return bad(c, 'You have already solved this challenge.');
+    }
+    const challenge = await challengeEntity.getState();
+    if (flag.trim() === challenge.flag) {
+      // Correct flag
+      await userEntity.mutate(u => ({
+        ...u,
+        score: u.score + challenge.points,
+        solvedChallenges: [...u.solvedChallenges, challengeId],
+      }));
+      const submission: Submission = {
+        id: crypto.randomUUID(),
+        challengeId,
+        userId,
+        userName: user.name,
+        ts: Date.now(),
+        pointsAwarded: challenge.points,
+      };
+      await SubmissionEntity.create(c.env, submission);
+      return ok(c, { message: 'Correct flag!', pointsAwarded: challenge.points });
+    } else {
+      return bad(c, 'Incorrect flag. Try again!');
+    }
+  });
+  // --- Scoreboard ---
+  app.get('/api/scoreboard', async (c) => {
+    const { items: users } = await UserEntity.list(c.env);
+    const { items: submissions } = await SubmissionEntity.list(c.env);
+    const scoreboard: ScoreboardEntry[] = users.map(user => {
+      const userSubmissions = submissions.filter(s => s.userId === user.id);
+      const lastSolve = userSubmissions.length > 0
+        ? Math.max(...userSubmissions.map(s => s.ts))
+        : 0;
+      return {
+        userId: user.id,
+        name: user.name,
+        score: user.score,
+        solvedCount: user.solvedChallenges.length,
+        lastSolveTs: lastSolve,
+      };
+    }).sort((a, b) => b.score - a.score || a.lastSolveTs - b.lastSolveTs);
+    return ok(c, scoreboard);
+  });
+  // --- Admin Routes ---
+  const admin = new Hono<{ Bindings: Env }>();
+  admin.use('*', async (c, next) => {
+    if (c.req.header('x-admin-token') !== ADMIN_TOKEN) {
+      return c.json({ success: false, error: 'Unauthorized' }, 401);
+    }
+    await next();
+  });
+  admin.post('/challenges', async (c) => {
+    const body = await c.req.json();
+    // Basic validation, zod would be better
+    if (!body.title || !body.flag || !body.points) return bad(c, 'Missing required fields');
+    const newChallenge = {
+      id: crypto.randomUUID(),
+      createdAt: Date.now(),
+      ...body
+    };
+    await ChallengeEntity.create(c.env, newChallenge);
+    return ok(c, newChallenge);
+  });
+  admin.put('/challenges/:id', async (c) => {
+    const id = c.req.param('id');
+    const body = await c.req.json();
+    const challenge = new ChallengeEntity(c.env, id);
+    if (!await challenge.exists()) return notFound(c, 'Challenge not found');
+    await challenge.patch(body);
+    return ok(c, await challenge.getState());
+  });
+  admin.get('/users', async (c) => {
+    const { items } = await UserEntity.list(c.env);
+    return ok(c, items);
+  });
+  app.route('/api/admin', admin);
+  // --- Users ---
+  app.get('/api/users', async (c) => {
+    const { items } = await UserEntity.list(c.env);
+    return ok(c, items.map(({id, name}) => ({id, name}))); // Return only public info
+  });
   app.post('/api/users', async (c) => {
     const { name } = (await c.req.json()) as { name?: string };
     if (!name?.trim()) return bad(c, 'name required');
-    return ok(c, await UserEntity.create(c.env, { id: crypto.randomUUID(), name: name.trim() }));
-  });
-
-  // CHATS
-  app.get('/api/chats', async (c) => {
-    await ChatBoardEntity.ensureSeed(c.env);
-    const cq = c.req.query('cursor');
-    const lq = c.req.query('limit');
-    const page = await ChatBoardEntity.list(c.env, cq ?? null, lq ? Math.max(1, (Number(lq) | 0)) : undefined);
-    return ok(c, page);
-  });
-
-  app.post('/api/chats', async (c) => {
-    const { title } = (await c.req.json()) as { title?: string };
-    if (!title?.trim()) return bad(c, 'title required');
-    const created = await ChatBoardEntity.create(c.env, { id: crypto.randomUUID(), title: title.trim(), messages: [] });
-    return ok(c, { id: created.id, title: created.title });
-  });
-
-  // MESSAGES
-  app.get('/api/chats/:chatId/messages', async (c) => {
-    const chat = new ChatBoardEntity(c.env, c.req.param('chatId'));
-    if (!await chat.exists()) return notFound(c, 'chat not found');
-    return ok(c, await chat.listMessages());
-  });
-
-  app.post('/api/chats/:chatId/messages', async (c) => {
-    const chatId = c.req.param('chatId');
-    const { userId, text } = (await c.req.json()) as { userId?: string; text?: string };
-    if (!isStr(userId) || !text?.trim()) return bad(c, 'userId and text required');
-    const chat = new ChatBoardEntity(c.env, chatId);
-    if (!await chat.exists()) return notFound(c, 'chat not found');
-    return ok(c, await chat.sendMessage(userId, text.trim()));
-  });
-
-  // DELETE: Users
-  app.delete('/api/users/:id', async (c) => ok(c, { id: c.req.param('id'), deleted: await UserEntity.delete(c.env, c.req.param('id')) }));
-
-  app.post('/api/users/deleteMany', async (c) => {
-    const { ids } = (await c.req.json()) as { ids?: string[] };
-    const list = ids?.filter(isStr) ?? [];
-    if (list.length === 0) return bad(c, 'ids required');
-    return ok(c, { deletedCount: await UserEntity.deleteMany(c.env, list), ids: list });
-  });
-
-  // DELETE: Chats
-  app.delete('/api/chats/:id', async (c) => ok(c, { id: c.req.param('id'), deleted: await ChatBoardEntity.delete(c.env, c.req.param('id')) }));
-
-  app.post('/api/chats/deleteMany', async (c) => {
-    const { ids } = (await c.req.json()) as { ids?: string[] };
-    const list = ids?.filter(isStr) ?? [];
-    if (list.length === 0) return bad(c, 'ids required');
-    return ok(c, { deletedCount: await ChatBoardEntity.deleteMany(c.env, list), ids: list });
+    const user: User = { id: crypto.randomUUID(), name: name.trim(), score: 0, solvedChallenges: [] };
+    return ok(c, await UserEntity.create(c.env, user));
   });
 }
