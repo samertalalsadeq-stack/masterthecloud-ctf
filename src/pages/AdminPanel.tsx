@@ -4,19 +4,21 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { PlusCircle, Edit, Trash2, Users, ClipboardList, Loader2 } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Users, ClipboardList, Loader2, BarChart2, Download } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api, setAdminToken } from '@/lib/api-client';
-import type { Challenge, User, ChallengeDifficulty, Submission } from '@shared/types';
+import type { Challenge, User, ChallengeDifficulty, Submission, ScoreboardEntry } from '@shared/types';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 const ADMIN_DEMO_TOKEN = 'secret-admin-token';
 const challengeSchema = z.object({
@@ -51,9 +53,11 @@ function ChallengeDialog({ challenge, onOpenChange, open }: { challenge?: Challe
         tags: challenge.tags.join(', '),
       });
     } else {
-      form.reset();
+      form.reset({
+        title: '', description: '', points: 100, difficulty: 'Easy', tags: '', flag: 'FLAG{}', hint: ''
+      });
     }
-  }, [challenge, form]);
+  }, [challenge, open, form]);
   const mutation = useMutation({
     mutationFn: (values: ChallengeFormValues) => {
       const payload = { ...values, tags: values.tags.split(',').map(t => t.trim()) };
@@ -79,7 +83,7 @@ function ChallengeDialog({ challenge, onOpenChange, open }: { challenge?: Challe
         <DialogHeader>
           <DialogTitle>{challenge ? 'Edit' : 'Create'} Challenge</DialogTitle>
           <DialogDescription>
-            Fill in the details for the new challenge. Click save when you're done.
+            Fill in the details for the challenge. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -96,7 +100,7 @@ function ChallengeDialog({ challenge, onOpenChange, open }: { challenge?: Challe
               )} />
               <FormField control={form.control} name="difficulty" render={({ field }) => (
                 <FormItem><FormLabel>Difficulty</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
                       {(['Easy', 'Medium', 'Hard', 'Insane'] as ChallengeDifficulty[]).map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
@@ -198,55 +202,108 @@ function UsersTab() {
     queryKey: ['admin-users'],
     queryFn: () => api('/api/admin/users'),
   });
+  const { data: scoreboard } = useQuery<ScoreboardEntry[]>({
+    queryKey: ['scoreboard'],
+    queryFn: () => api('/api/scoreboard'),
+  });
+  const handleExport = () => {
+    if (!scoreboard) {
+      toast.error("No scoreboard data to export.");
+      return;
+    }
+    const headers = "userId,name,score,solvedCount,lastSolveTs\n";
+    const csv = scoreboard.map(row => `${row.userId},${row.name},${row.score},${row.solvedCount},${row.lastSolveTs}`).join("\n");
+    const blob = new Blob([headers + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `scoreboard-${new Date().toISOString()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Scoreboard exported successfully!");
+  };
   return (
-    <div className="border rounded-lg">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>ID</TableHead><TableHead>Name</TableHead><TableHead>Score</TableHead><TableHead>Solved</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading && <TableRow><TableCell colSpan={4} className="text-center">Loading...</TableCell></TableRow>}
-          {users?.map(u => (
-            <TableRow key={u.id}>
-              <TableCell><code className="font-mono text-sm">{u.id}</code></TableCell>
-              <TableCell>{u.name}</TableCell><TableCell>{u.score}</TableCell><TableCell>{u.solvedChallenges.length}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
-}
-function SubmissionsTab() {
-    const { data: submissions, isLoading } = useQuery<Submission[]>({
-      queryKey: ['admin-submissions'],
-      queryFn: () => api('/api/admin/submissions'),
-    });
-    return (
+    <div>
+      <div className="flex justify-end mb-4">
+        <Button onClick={handleExport} variant="outline"><Download className="w-4 h-4 mr-2" /> Export CSV</Button>
+      </div>
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>User</TableHead><TableHead>Challenge ID</TableHead><TableHead>Points</TableHead><TableHead>Timestamp</TableHead>
+              <TableHead>ID</TableHead><TableHead>Name</TableHead><TableHead>Score</TableHead><TableHead>Solved</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading && <TableRow><TableCell colSpan={4} className="text-center">Loading...</TableCell></TableRow>}
-            {submissions?.map(s => (
-              <TableRow key={s.id}>
-                <TableCell>{s.userName}</TableCell>
-                <TableCell><code className="font-mono text-sm">{s.challengeId}</code></TableCell>
-                <TableCell>{s.pointsAwarded}</TableCell>
-                <TableCell>{new Date(s.ts).toLocaleString()}</TableCell>
+            {users?.map(u => (
+              <TableRow key={u.id}>
+                <TableCell><code className="font-mono text-sm">{u.id}</code></TableCell>
+                <TableCell>{u.name}</TableCell><TableCell>{u.score}</TableCell><TableCell>{u.solvedChallenges.length}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
-    );
-  }
+    </div>
+  );
+}
+function AnalyticsTab() {
+  const { data: users, isLoading: usersLoading } = useQuery<User[]>({
+    queryKey: ['admin-users'],
+    queryFn: () => api('/api/admin/users'),
+  });
+  const { data: submissions, isLoading: submissionsLoading } = useQuery<Submission[]>({
+    queryKey: ['admin-submissions'],
+    queryFn: () => api('/api/admin/submissions'),
+  });
+  const submissionsOverTime = submissions
+    ?.sort((a, b) => a.ts - b.ts)
+    .map((s, i) => ({
+      name: new Date(s.ts).toLocaleTimeString(),
+      submissions: i + 1,
+    }));
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <h3 className="text-xl font-semibold mb-4">User Scores</h3>
+        <div className="w-full h-80 p-4 border rounded-lg">
+          {usersLoading ? <p>Loading chart...</p> : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={users?.sort((a, b) => b.score - a.score)}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="score" fill="hsl(var(--primary))" />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </motion.div>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
+        <h3 className="text-xl font-semibold mb-4">Submissions Over Time</h3>
+        <div className="w-full h-80 p-4 border rounded-lg">
+          {submissionsLoading ? <p>Loading chart...</p> : (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={submissionsOverTime}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="submissions" stroke="hsl(var(--primary))" />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
 export function AdminPanel() {
   const [token, setToken] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -295,14 +352,16 @@ export function AdminPanel() {
             <h1 className="text-3xl font-bold font-display">Admin Panel</h1>
           </div>
           <Tabs defaultValue="challenges">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="challenges"><ClipboardList className="w-4 h-4 mr-2" />Challenges</TabsTrigger>
               <TabsTrigger value="users"><Users className="w-4 h-4 mr-2" />Users</TabsTrigger>
               <TabsTrigger value="submissions">Submissions</TabsTrigger>
+              <TabsTrigger value="analytics"><BarChart2 className="w-4 h-4 mr-2" />Analytics</TabsTrigger>
             </TabsList>
             <TabsContent value="challenges" className="mt-4"><ChallengesTab /></TabsContent>
             <TabsContent value="users" className="mt-4"><UsersTab /></TabsContent>
             <TabsContent value="submissions" className="mt-4"><SubmissionsTab /></TabsContent>
+            <TabsContent value="analytics" className="mt-4"><AnalyticsTab /></TabsContent>
           </Tabs>
         </div>
       </div>
