@@ -19,7 +19,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api, setAdminToken } from '@/lib/api-client';
 import type { Challenge, User, ChallengeDifficulty, Submission, ScoreboardEntry } from '@shared/types';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';interface SubmissionsTabProps {children?: React.ReactNode;className?: string;style?: React.CSSProperties;[key: string]: unknown;}
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 const ADMIN_DEMO_TOKEN = 'secret-admin-token';
 const challengeSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -47,15 +47,17 @@ function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: Challen
     }
   });
   useEffect(() => {
-    if (challenge) {
-      form.reset({
-        ...challenge,
-        tags: challenge.tags.join(', ')
-      });
-    } else {
-      form.reset({
-        title: '', description: '', points: 100, difficulty: 'Easy', tags: '', flag: 'FLAG{}', hint: ''
-      });
+    if (open) {
+      if (challenge) {
+        form.reset({
+          ...challenge,
+          tags: challenge.tags.join(', ')
+        });
+      } else {
+        form.reset({
+          title: '', description: '', points: 100, difficulty: 'Easy', tags: '', flag: 'FLAG{}', hint: ''
+        });
+      }
     }
   }, [challenge, open, form]);
   const mutation = useMutation({
@@ -96,7 +98,7 @@ function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: Challen
             } />
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="points" render={({ field }) =>
-              <FormItem><FormLabel>Points</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+              <FormItem><FormLabel>Points</FormLabel><FormControl><Input type="number" {...field} onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))} /></FormControl><FormMessage /></FormItem>
               } />
               <FormField control={form.control} name="difficulty" render={({ field }) =>
               <FormItem><FormLabel>Difficulty</FormLabel>
@@ -129,7 +131,6 @@ function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: Challen
         </Form>
       </DialogContent>
     </Dialog>);
-
 }
 function ChallengesTab() {
   const queryClient = useQueryClient();
@@ -195,7 +196,6 @@ function ChallengesTab() {
         </Table>
       </div>
     </div>);
-
 }
 function UsersTab() {
   const { data: users, isLoading } = useQuery<User[]>({
@@ -213,7 +213,7 @@ function UsersTab() {
     }
     const headers = "userId,name,score,solvedCount,lastSolveTs\n";
     const csv = scoreboard.map((row) => `${row.userId},${row.name},${row.score},${row.solvedCount},${row.lastSolveTs}`).join("\n");
-    const blob = new Blob([headers + csv], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([headers + csv], { type: 'text/csv;charset=utf--8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
@@ -248,7 +248,46 @@ function UsersTab() {
         </Table>
       </div>
     </div>);
-
+}
+function SubmissionsTab() {
+  const { data: submissions, isLoading } = useQuery<Submission[]>({
+    queryKey: ['admin-submissions'],
+    queryFn: () => api('/api/admin/submissions')
+  });
+  return (
+    <div>
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>ID</TableHead>
+              <TableHead>Challenge ID</TableHead>
+              <TableHead>User</TableHead>
+              <TableHead>Points</TableHead>
+              <TableHead>Time</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">Loading...</TableCell>
+              </TableRow>
+            ) : (
+              submissions?.map(s => (
+                <TableRow key={s.id}>
+                  <TableCell><code className="font-mono text-sm">{s.id.slice(0, 8)}...</code></TableCell>
+                  <TableCell><code className="font-mono text-sm">{s.challengeId.slice(0, 8)}...</code></TableCell>
+                  <TableCell>{s.userName}</TableCell>
+                  <TableCell>{s.pointsAwarded}</TableCell>
+                  <TableCell>{new Date(s.ts).toLocaleString()}</TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
 }
 function AnalyticsTab() {
   const { data: users, isLoading: usersLoading } = useQuery<User[]>({
@@ -302,7 +341,6 @@ function AnalyticsTab() {
         </div>
       </motion.div>
     </div>);
-
 }
 export function AdminPanel() {
   const [token, setToken] = useState('');
@@ -321,28 +359,30 @@ export function AdminPanel() {
   if (!isAuthenticated) {
     return (
       <AppLayout>
-        <div className="max-w-md mx-auto mt-20 p-8 border rounded-lg shadow-lg">
-          <h1 className="text-2xl font-bold text-center mb-4">Admin Authentication</h1>
-          <p className="text-muted-foreground text-center mb-6">Enter the admin token to access the panel.</p>
-          <div className="flex gap-2">
-            <Input
-              type="password"
-              placeholder="Admin Token"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAuth()} />
-
-            <Button onClick={handleAuth}>Login</Button>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-8 md:py-10 lg:py-12">
+            <div className="max-w-md mx-auto mt-20 p-8 border rounded-lg shadow-lg bg-card">
+              <h1 className="text-2xl font-bold text-center mb-4">Admin Authentication</h1>
+              <p className="text-muted-foreground text-center mb-6">Enter the admin token to access the panel.</p>
+              <div className="flex gap-2">
+                <Input
+                  type="password"
+                  placeholder="Admin Token"
+                  value={token}
+                  onChange={(e) => setToken(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAuth()} />
+                <Button onClick={handleAuth}>Login</Button>
+              </div>
+              <Alert className="mt-4">
+                <AlertTitle>Demo Information</AlertTitle>
+                <AlertDescription>
+                  For this demo, use the token: <code className="font-mono bg-muted px-1 py-0.5 rounded">{ADMIN_DEMO_TOKEN}</code>
+                </AlertDescription>
+              </Alert>
+            </div>
           </div>
-          <Alert className="mt-4">
-            <AlertTitle>Demo Information</AlertTitle>
-            <AlertDescription>
-              For this demo, use the token: <code className="font-mono bg-muted px-1 py-0.5 rounded">{ADMIN_DEMO_TOKEN}</code>
-            </AlertDescription>
-          </Alert>
         </div>
       </AppLayout>);
-
   }
   return (
     <AppLayout>
@@ -366,5 +406,4 @@ export function AdminPanel() {
         </div>
       </div>
     </AppLayout>);
-
 }
