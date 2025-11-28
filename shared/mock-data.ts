@@ -1,4 +1,4 @@
-import type { User, Challenge, Submission, Chat, ChatMessage, ChallengeDifficulty } from './types';
+import type { User, Challenge, Submission } from './types';
 export const MOCK_USERS: User[] = [
   { id: 'u1', name: 'Alice', score: 0, solvedChallenges: [] },
   { id: 'u2', name: 'Bob', score: 0, solvedChallenges: [] },
@@ -32,24 +32,28 @@ export const MOCK_CHALLENGES: (Challenge & { flag: string })[] = [
   {
     id: 'c3',
     title: 'Base-ic Knowledge',
-    description: 'This string looks weird: `RkxBR3tCMVNJQ19FTkMwRElOR19JU19GVU59`. What could it be?',
+    description: 'This string looks weird. What could it be?',
     points: 150,
     difficulty: 'Medium',
     tags: ['crypto', 'encoding'],
     hint: 'This is a very common encoding scheme that uses an alphabet of A-Z, a-z, 0-9, +, and /. The trailing = is a giveaway.',
     flag: 'FLAG{B1SIC_ENC0DING_IS_FUN}',
     createdAt: Date.now() - 86400000 * 3,
+    codeLanguage: 'text',
+    codeSnippet: 'RkxBR3tCMVNJQ19FTkMwRElOR19JU19GVU59'
   },
   {
     id: 'c4',
     title: 'Caesar\'s Salad',
-    description: 'Decrypt this message: `IOF{jbu_jbu_jbu}`. I heard the Romans liked to shift things around.',
+    description: 'Decrypt this message. I heard the Romans liked to shift things around.',
     points: 200,
     difficulty: 'Medium',
     tags: ['crypto', 'classic'],
     hint: 'This is a simple substitution cipher where each letter is shifted by a fixed number of positions. The key is small.',
     flag: 'FLAG{eat_eat_eat}',
     createdAt: Date.now() - 86400000 * 2,
+    codeLanguage: 'text',
+    codeSnippet: 'IOF{jbu_jbu_jbu}'
   },
   {
     id: 'c5',
@@ -75,10 +79,3 @@ export const MOCK_CHALLENGES: (Challenge & { flag: string })[] = [
   },
 ];
 export const MOCK_SUBMISSIONS: Submission[] = [];
-// --- Original Template Mocks ---
-export const MOCK_CHATS: Chat[] = [
-  { id: 'c1', title: 'General' },
-];
-export const MOCK_CHAT_MESSAGES: ChatMessage[] = [
-  { id: 'm1', chatId: 'c1', userId: 'u1', text: 'Hello', ts: Date.now() },
-];

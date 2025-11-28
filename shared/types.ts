@@ -3,6 +3,10 @@ export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
 }
+export interface PaginatedResponse<T> {
+  items: T[];
+  next?: string | null;
+}
 // --- FlagForge CTF Types ---
 export type ChallengeDifficulty = 'Easy' | 'Medium' | 'Hard' | 'Insane';
 export interface Challenge {
@@ -14,9 +18,11 @@ export interface Challenge {
   tags: string[];
   hint?: string;
   createdAt: number; // epoch millis
+  codeLanguage?: string;
+  codeSnippet?: string;
 }
 export interface Submission {
-  id: string;
+  id:string;
   challengeId: string;
   userId: string;
   userName: string; // denormalized for scoreboard
