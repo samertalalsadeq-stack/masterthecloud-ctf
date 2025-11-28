@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Lightbulb, Paperclip, ShieldCheck, Trophy, Tag, ChevronLeft, Loader2 } from 'lucide-react';
+import { Lightbulb, Paperclip, ShieldCheck, Trophy, Tag, ChevronLeft, Loader2, User, Award } from 'lucide-react';
 import { toast } from 'sonner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Badge } from '@/components/ui/badge';
@@ -11,10 +11,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/lib/api-client';
-import type { Challenge } from '@shared/types';
+import type { Challenge, ChallengeStats } from '@shared/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-// A mock user ID for demo purposes. In a real app, this would come from an auth context.
-const MOCK_USER_ID = 'u1'; 
+import { useUserStore } from '@/stores/userStore';
+import { LoginModal } from '@/components/LoginModal';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 const ChallengeDetailSkeleton = () => (
   <div className="grid md:grid-cols-3 gap-8">
     <div className="md:col-span-2 space-y-6">
@@ -52,9 +53,21 @@ export function ChallengeDetail() {
   const queryClient = useQueryClient();
   const [flag, setFlag] = useState('');
   const [showHint, setShowHint] = useState(false);
+  const [isLoginModalOpen, setLoginModalOpen] = useState(false);
+  const { userId, isLoggedIn } = useUserStore(s => ({ userId: s.userId, isLoggedIn: s.isLoggedIn }));
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setLoginModalOpen(true);
+    }
+  }, [isLoggedIn]);
   const { data: challenge, isLoading, error } = useQuery<Challenge>({
     queryKey: ['challenge', id],
     queryFn: () => api(`/api/challenges/${id}`),
+    enabled: !!id,
+  });
+  const { data: stats } = useQuery<ChallengeStats>({
+    queryKey: ['challengeStats', id],
+    queryFn: () => api(`/api/challenges/${id}/stats`),
     enabled: !!id,
   });
   const mutation = useMutation({
@@ -67,6 +80,8 @@ export function ChallengeDetail() {
         description: `You've been awarded ${data.pointsAwarded} points!`,
       });
       queryClient.invalidateQueries({ queryKey: ['scoreboard'] });
+      queryClient.invalidateQueries({ queryKey: ['user', userId] });
+      queryClient.invalidateQueries({ queryKey: ['challengeStats', id] });
       navigate('/challenges');
     },
     onError: (err: Error) => {
@@ -77,14 +92,19 @@ export function ChallengeDetail() {
   });
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isLoggedIn || !userId) {
+      setLoginModalOpen(true);
+      return;
+    }
     if (!flag.trim()) {
       toast.warning('Please enter a flag.');
       return;
     }
-    mutation.mutate({ userId: MOCK_USER_ID, flag });
+    mutation.mutate({ userId, flag });
   };
   return (
     <AppLayout>
+      <LoginModal open={isLoginModalOpen} onOpenChange={setLoginModalOpen} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-8 md:py-10 lg:py-12">
           <Button variant="ghost" onClick={() => navigate('/challenges')} className="mb-6">
@@ -113,7 +133,24 @@ export function ChallengeDetail() {
                     <Trophy className="w-5 h-5 text-yellow-500" />
                     <span className="font-semibold text-lg">{challenge.points} Points</span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <User className="w-5 h-5" />
+                    <span className="font-semibold text-lg">{stats?.solvesCount ?? 0} Solves</span>
+                  </div>
                 </div>
+                {stats?.firstBloodUser && (
+                  <Alert variant="default" className="bg-yellow-500/10 border-yellow-500/50 text-yellow-200">
+                    <Award className="h-4 w-4 !text-yellow-400" />
+                    <AlertTitle className="text-yellow-300">First Blood!</AlertTitle>
+                    <AlertDescription className="flex items-center gap-2">
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={`https://api.dicebear.com/8.x/bottts/svg?seed=${stats.firstBloodUser.name}`} />
+                        <AvatarFallback>{stats.firstBloodUser.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <span>Captured by <strong>{stats.firstBloodUser.name}</strong></span>
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <p className="text-lg text-muted-foreground leading-relaxed">{challenge.description}</p>
                 <div className="flex flex-wrap gap-2">
                   {challenge.tags.map(tag => (
