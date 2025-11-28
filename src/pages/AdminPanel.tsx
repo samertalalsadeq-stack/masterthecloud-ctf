@@ -19,7 +19,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api, setAdminToken } from '@/lib/api-client';
 import type { Challenge, User, ChallengeDifficulty, Submission, ScoreboardEntry } from '@shared/types';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';interface SubmissionsTabProps {children?: React.ReactNode;className?: string;style?: React.CSSProperties;[key: string]: unknown;}
 const ADMIN_DEMO_TOKEN = 'secret-admin-token';
 const challengeSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -28,11 +28,11 @@ const challengeSchema = z.object({
   difficulty: z.enum(['Easy', 'Medium', 'Hard', 'Insane']),
   tags: z.string().min(1, 'At least one tag is required'),
   flag: z.string().min(5, 'Flag must be at least 5 characters'),
-  hint: z.string().optional(),
+  hint: z.string().optional()
 });
 type ChallengeFormValues = z.infer<typeof challengeSchema>;
-type ChallengeWithFlag = Challenge & { flag: string };
-function ChallengeDialog({ challenge, onOpenChange, open }: { challenge?: ChallengeWithFlag, onOpenChange: (open: boolean) => void, open: boolean }) {
+type ChallengeWithFlag = Challenge & {flag: string;};
+function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: ChallengeWithFlag;onOpenChange: (open: boolean) => void;open: boolean;}) {
   const queryClient = useQueryClient();
   const form = useForm<ChallengeFormValues>({
     resolver: zodResolver(challengeSchema),
@@ -43,14 +43,14 @@ function ChallengeDialog({ challenge, onOpenChange, open }: { challenge?: Challe
       difficulty: 'Easy',
       tags: '',
       flag: 'FLAG{}',
-      hint: '',
-    },
+      hint: ''
+    }
   });
   useEffect(() => {
     if (challenge) {
       form.reset({
         ...challenge,
-        tags: challenge.tags.join(', '),
+        tags: challenge.tags.join(', ')
       });
     } else {
       form.reset({
@@ -60,7 +60,7 @@ function ChallengeDialog({ challenge, onOpenChange, open }: { challenge?: Challe
   }, [challenge, open, form]);
   const mutation = useMutation({
     mutationFn: (values: ChallengeFormValues) => {
-      const payload = { ...values, tags: values.tags.split(',').map(t => t.trim()) };
+      const payload = { ...values, tags: values.tags.split(',').map((t) => t.trim()) };
       const endpoint = challenge ? `/api/admin/challenges/${challenge.id}` : '/api/admin/challenges';
       const method = challenge ? 'PUT' : 'POST';
       return api(endpoint, { method, body: JSON.stringify(payload) });
@@ -88,36 +88,36 @@ function ChallengeDialog({ challenge, onOpenChange, open }: { challenge?: Challe
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[70vh] overflow-y-auto pr-4">
-            <FormField control={form.control} name="title" render={({ field }) => (
-              <FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-            )} />
-            <FormField control={form.control} name="description" render={({ field }) => (
-              <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>
-            )} />
+            <FormField control={form.control} name="title" render={({ field }) =>
+            <FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+            } />
+            <FormField control={form.control} name="description" render={({ field }) =>
+            <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>
+            } />
             <div className="grid grid-cols-2 gap-4">
-              <FormField control={form.control} name="points" render={({ field }) => (
-                <FormItem><FormLabel>Points</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name="difficulty" render={({ field }) => (
-                <FormItem><FormLabel>Difficulty</FormLabel>
+              <FormField control={form.control} name="points" render={({ field }) =>
+              <FormItem><FormLabel>Points</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+              } />
+              <FormField control={form.control} name="difficulty" render={({ field }) =>
+              <FormItem><FormLabel>Difficulty</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
-                      {(['Easy', 'Medium', 'Hard', 'Insane'] as ChallengeDifficulty[]).map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                      {(['Easy', 'Medium', 'Hard', 'Insane'] as ChallengeDifficulty[]).map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                     </SelectContent>
                   </Select><FormMessage />
                 </FormItem>
-              )} />
+              } />
             </div>
-            <FormField control={form.control} name="tags" render={({ field }) => (
-              <FormItem><FormLabel>Tags (comma-separated)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-            )} />
-            <FormField control={form.control} name="flag" render={({ field }) => (
-              <FormItem><FormLabel>Flag</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-            )} />
-            <FormField control={form.control} name="hint" render={({ field }) => (
-              <FormItem><FormLabel>Hint (Optional)</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>
-            )} />
+            <FormField control={form.control} name="tags" render={({ field }) =>
+            <FormItem><FormLabel>Tags (comma-separated)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+            } />
+            <FormField control={form.control} name="flag" render={({ field }) =>
+            <FormItem><FormLabel>Flag</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+            } />
+            <FormField control={form.control} name="hint" render={({ field }) =>
+            <FormItem><FormLabel>Hint (Optional)</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>
+            } />
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
               <Button type="submit" disabled={mutation.isPending}>
@@ -128,8 +128,8 @@ function ChallengeDialog({ challenge, onOpenChange, open }: { challenge?: Challe
           </form>
         </Form>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>);
+
 }
 function ChallengesTab() {
   const queryClient = useQueryClient();
@@ -137,7 +137,7 @@ function ChallengesTab() {
   const [selectedChallenge, setSelectedChallenge] = useState<ChallengeWithFlag | undefined>(undefined);
   const { data: challenges, isLoading } = useQuery<ChallengeWithFlag[]>({
     queryKey: ['admin-challenges'],
-    queryFn: () => api('/api/admin/challenges'),
+    queryFn: () => api('/api/admin/challenges')
   });
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api(`/api/admin/challenges/${id}`, { method: 'DELETE' }),
@@ -172,8 +172,8 @@ function ChallengesTab() {
           </TableHeader>
           <TableBody>
             {isLoading && <TableRow><TableCell colSpan={5} className="text-center">Loading...</TableCell></TableRow>}
-            {challenges?.map(c => (
-              <TableRow key={c.id}>
+            {challenges?.map((c) =>
+            <TableRow key={c.id}>
                 <TableCell>{c.title}</TableCell><TableCell>{c.points}</TableCell><TableCell>{c.difficulty}</TableCell>
                 <TableCell><code className="font-mono text-sm">{c.flag}</code></TableCell>
                 <TableCell className="space-x-2">
@@ -190,21 +190,21 @@ function ChallengesTab() {
                   </AlertDialog>
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </div>
-    </div>
-  );
+    </div>);
+
 }
 function UsersTab() {
   const { data: users, isLoading } = useQuery<User[]>({
     queryKey: ['admin-users'],
-    queryFn: () => api('/api/admin/users'),
+    queryFn: () => api('/api/admin/users')
   });
   const { data: scoreboard } = useQuery<ScoreboardEntry[]>({
     queryKey: ['scoreboard'],
-    queryFn: () => api('/api/scoreboard'),
+    queryFn: () => api('/api/scoreboard')
   });
   const handleExport = () => {
     if (!scoreboard) {
@@ -212,7 +212,7 @@ function UsersTab() {
       return;
     }
     const headers = "userId,name,score,solvedCount,lastSolveTs\n";
-    const csv = scoreboard.map(row => `${row.userId},${row.name},${row.score},${row.solvedCount},${row.lastSolveTs}`).join("\n");
+    const csv = scoreboard.map((row) => `${row.userId},${row.name},${row.score},${row.solvedCount},${row.lastSolveTs}`).join("\n");
     const blob = new Blob([headers + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -238,40 +238,40 @@ function UsersTab() {
           </TableHeader>
           <TableBody>
             {isLoading && <TableRow><TableCell colSpan={4} className="text-center">Loading...</TableCell></TableRow>}
-            {users?.map(u => (
-              <TableRow key={u.id}>
+            {users?.map((u) =>
+            <TableRow key={u.id}>
                 <TableCell><code className="font-mono text-sm">{u.id}</code></TableCell>
                 <TableCell>{u.name}</TableCell><TableCell>{u.score}</TableCell><TableCell>{u.solvedChallenges.length}</TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </div>
-    </div>
-  );
+    </div>);
+
 }
 function AnalyticsTab() {
   const { data: users, isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ['admin-users'],
-    queryFn: () => api('/api/admin/users'),
+    queryFn: () => api('/api/admin/users')
   });
   const { data: submissions, isLoading: submissionsLoading } = useQuery<Submission[]>({
     queryKey: ['admin-submissions'],
-    queryFn: () => api('/api/admin/submissions'),
+    queryFn: () => api('/api/admin/submissions')
   });
-  const submissionsOverTime = submissions
-    ?.sort((a, b) => a.ts - b.ts)
-    .map((s, i) => ({
-      name: new Date(s.ts).toLocaleTimeString(),
-      submissions: i + 1,
-    }));
+  const submissionsOverTime = submissions?.
+  sort((a, b) => a.ts - b.ts).
+  map((s, i) => ({
+    name: new Date(s.ts).toLocaleTimeString(),
+    submissions: i + 1
+  }));
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <h3 className="text-xl font-semibold mb-4">User Scores</h3>
         <div className="w-full h-80 p-4 border rounded-lg">
-          {usersLoading ? <p>Loading chart...</p> : (
-            <ResponsiveContainer width="100%" height="100%">
+          {usersLoading ? <p>Loading chart...</p> :
+          <ResponsiveContainer width="100%" height="100%">
               <BarChart data={users?.sort((a, b) => b.score - a.score)}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
@@ -281,14 +281,14 @@ function AnalyticsTab() {
                 <Bar dataKey="score" fill="hsl(var(--primary))" />
               </BarChart>
             </ResponsiveContainer>
-          )}
+          }
         </div>
       </motion.div>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
         <h3 className="text-xl font-semibold mb-4">Submissions Over Time</h3>
         <div className="w-full h-80 p-4 border rounded-lg">
-          {submissionsLoading ? <p>Loading chart...</p> : (
-            <ResponsiveContainer width="100%" height="100%">
+          {submissionsLoading ? <p>Loading chart...</p> :
+          <ResponsiveContainer width="100%" height="100%">
               <LineChart data={submissionsOverTime}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
@@ -298,11 +298,11 @@ function AnalyticsTab() {
                 <Line type="monotone" dataKey="submissions" stroke="hsl(var(--primary))" />
               </LineChart>
             </ResponsiveContainer>
-          )}
+          }
         </div>
       </motion.div>
-    </div>
-  );
+    </div>);
+
 }
 export function AdminPanel() {
   const [token, setToken] = useState('');
@@ -330,8 +330,8 @@ export function AdminPanel() {
               placeholder="Admin Token"
               value={token}
               onChange={(e) => setToken(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAuth()}
-            />
+              onKeyDown={(e) => e.key === 'Enter' && handleAuth()} />
+
             <Button onClick={handleAuth}>Login</Button>
           </div>
           <Alert className="mt-4">
@@ -341,8 +341,8 @@ export function AdminPanel() {
             </AlertDescription>
           </Alert>
         </div>
-      </AppLayout>
-    );
+      </AppLayout>);
+
   }
   return (
     <AppLayout>
@@ -365,6 +365,6 @@ export function AdminPanel() {
           </Tabs>
         </div>
       </div>
-    </AppLayout>
-  );
+    </AppLayout>);
+
 }
