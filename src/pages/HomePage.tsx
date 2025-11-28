@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, Trophy, Users, GitBranch, Award, UserCheck, LogIn } from 'lucide-react';
+import { Shield, Trophy, UserCheck, LogIn } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -68,6 +68,7 @@ export function HomePage() {
   const { data: scoreboard, isLoading } = useQuery<ScoreboardEntry[]>({
     queryKey: ['scoreboard'],
     queryFn: () => api('/api/scoreboard'),
+    refetchOnWindowFocus: true,
   });
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
   const isLoggedIn = useUserStore(s => s.isLoggedIn);
@@ -93,21 +94,27 @@ export function HomePage() {
               </p>
               <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                 {!isLoggedIn ? (
-                  <Button onClick={() => setLoginModalOpen(true)} size="lg" className="btn-gradient px-8 py-4 text-lg font-semibold hover:-translate-y-0.5 transition-all duration-200">
-                    <LogIn className="mr-2 h-5 w-5" /> Login to Play
-                  </Button>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button onClick={() => setLoginModalOpen(true)} size="lg" className="btn-gradient px-8 py-4 text-lg font-semibold">
+                      <LogIn className="mr-2 h-5 w-5" /> Login to Play
+                    </Button>
+                  </motion.div>
                 ) : (
-                  <Button asChild size="lg" className="btn-gradient px-8 py-4 text-lg font-semibold hover:-translate-y-0.5 transition-all duration-200">
-                    <Link to="/challenges">
-                      <Shield className="mr-2 h-5 w-5" /> View Challenges
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button asChild size="lg" className="btn-gradient px-8 py-4 text-lg font-semibold">
+                      <Link to="/challenges">
+                        <Shield className="mr-2 h-5 w-5" /> View Challenges
+                      </Link>
+                    </Button>
+                  </motion.div>
+                )}
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button asChild size="lg" variant="outline" className="px-8 py-4 text-lg font-semibold">
+                    <Link to="/admin">
+                      <UserCheck className="mr-2 h-5 w-5" /> Admin Panel
                     </Link>
                   </Button>
-                )}
-                <Button asChild size="lg" variant="outline" className="px-8 py-4 text-lg font-semibold">
-                  <Link to="/admin">
-                    <UserCheck className="mr-2 h-5 w-5" /> Admin Panel
-                  </Link>
-                </Button>
+                </motion.div>
               </div>
             </motion.div>
           </div>
