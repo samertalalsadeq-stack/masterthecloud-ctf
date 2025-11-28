@@ -77,7 +77,9 @@ function updateWranglerJsonc() {
 }
 
 function runSetupCommands() {
-    const commands = [];
+    const commands = [
+    "bun add prism-react-renderer@^2.3.1"
+];
     
     if (commands.length === 0) {
         console.log('⊘ No setup commands to run');
