@@ -78,7 +78,8 @@ function updateWranglerJsonc() {
 
 function runSetupCommands() {
     const commands = [
-    "bun add prism-react-renderer@^2.3.1"
+    "bun add prism-react-renderer@^2.3.1",
+    "bun install @hono/zod-validator"
 ];
     
     if (commands.length === 0) {
