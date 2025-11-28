@@ -22,6 +22,7 @@ export interface Submission {
   userName: string; // denormalized for scoreboard
   ts: number; // epoch millis
   pointsAwarded: number;
+  isFirstBlood: boolean;
 }
 export interface ScoreboardEntry {
   userId: string;
@@ -30,21 +31,13 @@ export interface ScoreboardEntry {
   solvedCount: number;
   lastSolveTs: number;
 }
-// --- Original Template Types (can be removed later) ---
+export interface ChallengeStats {
+  solvesCount: number;
+  firstBloodUser?: { id: string; name: string };
+}
 export interface User {
   id: string;
   name: string;
   score: number;
   solvedChallenges: string[]; // array of challenge IDs
-}
-export interface Chat {
-  id: string;
-  title: string;
-}
-export interface ChatMessage {
-  id: string;
-  chatId: string;
-  userId: string;
-  text: string;
-  ts: number; // epoch millis
 }

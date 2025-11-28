@@ -1,14 +1,23 @@
 import { Hono } from "hono";
+import { z } from 'zod';
+import { zValidator } from '@hono/zod-validator';
 import type { Env } from './core-utils';
-import { UserEntity, ChallengeEntity, SubmissionEntity } from "./entities";
+import { UserEntity, ChallengeEntity, SubmissionEntity, ChallengeState } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-import { MOCK_CHALLENGES, MOCK_USERS } from "@shared/mock-data";
 import type { ScoreboardEntry, Submission, User } from "@shared/types";
 const ADMIN_TOKEN = 'secret-admin-token';
+const challengeSchema = z.object({
+  title: z.string().min(3),
+  description: z.string().min(10),
+  points: z.number().int().min(1),
+  difficulty: z.enum(['Easy', 'Medium', 'Hard', 'Insane']),
+  tags: z.array(z.string()),
+  flag: z.string().min(5),
+  hint: z.string().optional(),
+});
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // --- Seeding ---
   app.use('/api/*', async (c, next) => {
-    // Ensure data is seeded on first request
     await Promise.all([
       UserEntity.ensureSeed(c.env),
       ChallengeEntity.ensureSeed(c.env),
@@ -18,7 +27,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // --- Challenges ---
   app.get('/api/challenges', async (c) => {
     const { items } = await ChallengeEntity.list(c.env);
-    // Strip flags for public listing
     const publicChallenges = items.map(challenge => {
       const { flag, ...rest } = challenge;
       return rest;
@@ -31,8 +39,25 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (!await challenge.exists()) return notFound(c, 'Challenge not found');
     const state = await challenge.getState();
     const { flag, ...publicChallenge } = state;
-    const isAdmin = c.req.header('x-admin-token') === ADMIN_TOKEN;
-    return ok(c, isAdmin ? state : publicChallenge);
+    return ok(c, publicChallenge);
+  });
+  app.get('/api/challenges/:id/stats', async (c) => {
+    const challengeId = c.req.param('id');
+    const { items: submissions } = await SubmissionEntity.list(c.env);
+    const challengeSubmissions = submissions.filter(s => s.challengeId === challengeId);
+    const firstBloodSubmission = challengeSubmissions.find(s => s.isFirstBlood);
+    let firstBloodUser = null;
+    if (firstBloodSubmission) {
+        const userEntity = new UserEntity(c.env, firstBloodSubmission.userId);
+        if (await userEntity.exists()) {
+            const user = await userEntity.getState();
+            firstBloodUser = { id: user.id, name: user.name };
+        }
+    }
+    return ok(c, {
+      solvesCount: challengeSubmissions.length,
+      firstBloodUser,
+    });
   });
   app.post('/api/challenges/:id/submit', async (c) => {
     const { userId, flag } = await c.req.json<{ userId: string, flag: string }>();
@@ -47,26 +72,32 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       return bad(c, 'You have already solved this challenge.');
     }
     const challenge = await challengeEntity.getState();
-    if (flag.trim() === challenge.flag) {
-      // Correct flag
-      await userEntity.mutate(u => ({
-        ...u,
-        score: u.score + challenge.points,
-        solvedChallenges: [...u.solvedChallenges, challengeId],
-      }));
-      const submission: Submission = {
-        id: crypto.randomUUID(),
-        challengeId,
-        userId,
-        userName: user.name,
-        ts: Date.now(),
-        pointsAwarded: challenge.points,
-      };
-      await SubmissionEntity.create(c.env, submission);
-      return ok(c, { message: 'Correct flag!', pointsAwarded: challenge.points });
-    } else {
+    if (flag.trim() !== challenge.flag) {
       return bad(c, 'Incorrect flag. Try again!');
     }
+    // Correct flag, now handle submission and scoring
+    const { items: submissions } = await SubmissionEntity.list(c.env);
+    const isFirstBlood = submissions.filter(s => s.challengeId === challengeId).length === 0;
+    let pointsAwarded = challenge.points;
+    if (isFirstBlood) {
+      pointsAwarded += 50; // First blood bonus
+    }
+    await userEntity.mutate(u => ({
+      ...u,
+      score: u.score + pointsAwarded,
+      solvedChallenges: [...u.solvedChallenges, challengeId],
+    }));
+    const submission: Submission = {
+      id: crypto.randomUUID(),
+      challengeId,
+      userId,
+      userName: user.name,
+      ts: Date.now(),
+      pointsAwarded: pointsAwarded,
+      isFirstBlood: isFirstBlood,
+    };
+    await SubmissionEntity.create(c.env, submission);
+    return ok(c, { message: `Correct flag! ${isFirstBlood ? 'First blood bonus!': ''}`, pointsAwarded });
   });
   // --- Scoreboard ---
   app.get('/api/scoreboard', async (c) => {
@@ -87,6 +118,23 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     }).sort((a, b) => b.score - a.score || a.lastSolveTs - b.lastSolveTs);
     return ok(c, scoreboard);
   });
+  // --- Users ---
+  app.get('/api/users', async (c) => {
+    const { items } = await UserEntity.list(c.env);
+    return ok(c, items.map(({id, name}) => ({id, name})));
+  });
+  app.get('/api/users/:id', async (c) => {
+    const id = c.req.param('id');
+    const user = new UserEntity(c.env, id);
+    if (!await user.exists()) return notFound(c, 'User not found');
+    return ok(c, await user.getState());
+  });
+  app.post('/api/users', async (c) => {
+    const { name } = (await c.req.json()) as { name?: string };
+    if (!name?.trim()) return bad(c, 'name required');
+    const user: User = { id: crypto.randomUUID(), name: name.trim(), score: 0, solvedChallenges: [] };
+    return ok(c, await UserEntity.create(c.env, user));
+  });
   // --- Admin Routes ---
   const admin = new Hono<{ Bindings: Env }>();
   admin.use('*', async (c, next) => {
@@ -95,11 +143,13 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     }
     await next();
   });
-  admin.post('/challenges', async (c) => {
-    const body = await c.req.json();
-    // Basic validation, zod would be better
-    if (!body.title || !body.flag || !body.points) return bad(c, 'Missing required fields');
-    const newChallenge = {
+  admin.get('/challenges', async (c) => {
+    const { items } = await ChallengeEntity.list(c.env);
+    return ok(c, items);
+  });
+  admin.post('/challenges', zValidator('json', challengeSchema), async (c) => {
+    const body = c.req.valid('json');
+    const newChallenge: ChallengeState = {
       id: crypto.randomUUID(),
       createdAt: Date.now(),
       ...body
@@ -107,28 +157,27 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     await ChallengeEntity.create(c.env, newChallenge);
     return ok(c, newChallenge);
   });
-  admin.put('/challenges/:id', async (c) => {
+  admin.put('/challenges/:id', zValidator('json', challengeSchema), async (c) => {
     const id = c.req.param('id');
-    const body = await c.req.json();
+    const body = c.req.valid('json');
     const challenge = new ChallengeEntity(c.env, id);
     if (!await challenge.exists()) return notFound(c, 'Challenge not found');
     await challenge.patch(body);
     return ok(c, await challenge.getState());
   });
+  admin.delete('/challenges/:id', async (c) => {
+    const id = c.req.param('id');
+    const deleted = await ChallengeEntity.delete(c.env, id);
+    if (!deleted) return notFound(c, 'Challenge not found');
+    return ok(c, { id });
+  });
   admin.get('/users', async (c) => {
     const { items } = await UserEntity.list(c.env);
     return ok(c, items);
   });
+  admin.get('/submissions', async (c) => {
+    const { items } = await SubmissionEntity.list(c.env);
+    return ok(c, items.sort((a, b) => b.ts - a.ts));
+  });
   app.route('/api/admin', admin);
-  // --- Users ---
-  app.get('/api/users', async (c) => {
-    const { items } = await UserEntity.list(c.env);
-    return ok(c, items.map(({id, name}) => ({id, name}))); // Return only public info
-  });
-  app.post('/api/users', async (c) => {
-    const { name } = (await c.req.json()) as { name?: string };
-    if (!name?.trim()) return bad(c, 'name required');
-    const user: User = { id: crypto.randomUUID(), name: name.trim(), score: 0, solvedChallenges: [] };
-    return ok(c, await UserEntity.create(c.env, user));
-  });
 }

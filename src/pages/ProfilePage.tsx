@@ -1,8 +1,8 @@
-import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Award, BarChart, ChevronLeft } from 'lucide-react';
+import { User, Award, Shield, BarChart, Calendar } from 'lucide-react';
+import { format } from 'date-fns';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -44,39 +44,27 @@ const ProfileSkeleton = () => (
   </div>
 );
 export function ProfilePage() {
-  const navigate = useNavigate();
   const userId = useUserStore(s => s.userId);
   const { data: user, isLoading: isLoadingUser } = useQuery<UserType>({
     queryKey: ['user', userId],
     queryFn: () => api(`/api/users/${userId}`),
     enabled: !!userId,
   });
-  const { data: challenges, isLoading: isLoadingChallenges } = useQuery<{items: Challenge[]}>({
+  const { data: challenges, isLoading: isLoadingChallenges } = useQuery<Challenge[]>({
     queryKey: ['challenges'],
-    queryFn: () => api('/api/challenges', { params: { limit: 100 } }),
+    queryFn: () => api('/api/challenges'),
   });
-  const safeChallenges = challenges?.items ?? [];
-  const solvedChallenges = safeChallenges.filter(c => user?.solvedChallenges?.includes(c.id) ?? false);
+  const solvedChallenges = challenges?.filter(c => user?.solvedChallenges.includes(c.id)) || [];
   if (!userId) {
     return (
       <AppLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-8 md:py-10 lg:py-12">
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/')}
-              className="mb-6 group hover:bg-accent/50 transition-all duration-200 hover:scale-105"
-            >
-              <ChevronLeft className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
-              <span className="font-bold">Back to Home</span>
+          <div className="py-8 md:py-10 lg:py-12 text-center">
+            <h1 className="text-2xl font-bold">Please Log In</h1>
+            <p className="text-muted-foreground mt-2">You need to be logged in to view your profile.</p>
+            <Button asChild className="mt-4">
+              <Link to="/">Go to Home</Link>
             </Button>
-            <div className="text-center py-12">
-              <h1 className="text-2xl font-bold">Please Log In</h1>
-              <p className="text-muted-foreground mt-2">You need to be logged in to view your Master the Cloud profile.</p>
-              <Button asChild className="mt-4">
-                <Link to="/">Go to Home</Link>
-              </Button>
-            </div>
           </div>
         </div>
       </AppLayout>
@@ -87,14 +75,6 @@ export function ProfilePage() {
     <AppLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-8 md:py-10 lg:py-12">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/')}
-            className="mb-6 group hover:bg-accent/50 transition-all duration-200 hover:scale-105"
-          >
-            <ChevronLeft className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
-            <span className="font-bold">Back to Home</span>
-          </Button>
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -102,7 +82,7 @@ export function ProfilePage() {
             className="mb-8"
           >
             <h1 className="text-4xl md:text-5xl font-display font-bold">Your Profile</h1>
-            <p className="mt-2 text-lg text-muted-foreground">Track your progress and celebrate your victories on Master the Cloud.</p>
+            <p className="mt-2 text-lg text-muted-foreground">Track your progress and celebrate your victories.</p>
           </motion.div>
           {isLoading ? <ProfileSkeleton /> : user && (
             <div className="grid md:grid-cols-3 gap-8 items-start">
@@ -121,12 +101,13 @@ export function ProfilePage() {
                     <CardTitle className="text-2xl pt-4">{user.name}</CardTitle>
                   </CardHeader>
                   <CardContent>
+                    {/* Placeholder for future "Edit Name" functionality */}
                     <Button variant="outline" disabled>Edit Name (soon)</Button>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><BarChart className="w-5 h-5" /> Stats</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><BarChart /> Stats</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4 text-lg">
                     <div className="flex justify-between items-center">
@@ -148,7 +129,7 @@ export function ProfilePage() {
               >
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Award className="w-5 h-5 text-yellow-500" /> Solved Challenges</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><Award /> Solved Challenges</CardTitle>
                     <CardDescription>A list of all the challenges you have conquered.</CardDescription>
                   </CardHeader>
                   <CardContent>
