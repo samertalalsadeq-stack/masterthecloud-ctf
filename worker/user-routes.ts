@@ -33,7 +33,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       filteredItems = filteredItems.filter(item => item.difficulty === difficulty);
     }
     if (tags) {
-      const tagList = tags.split(',').map(t => t.trim());
+      const tagList = tags.split(',').map(t => t.trim()).filter(Boolean);
       if (tagList.length > 0) {
         filteredItems = filteredItems.filter(item =>
           tagList.some(t => item.tags.includes(t))
@@ -41,7 +41,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       }
     }
     const paginatedItems = filteredItems.slice(0, limitNum);
-    const nextCursor = filteredItems.length > limitNum ? items[items.length - 1].id : next;
+    const nextCursor = filteredItems.length > limitNum ? paginatedItems[paginatedItems.length - 1].id : next;
     const publicChallenges = paginatedItems.map(challenge => {
       const { flag, ...rest } = challenge;
       return rest;
@@ -166,7 +166,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const body = await c.req.json();
     const validation = challengeSchema.safeParse(body);
     if (!validation.success) {
-      return bad(c, validation.error.format());
+      return bad(c, validation.error.message);
     }
     const newChallenge: ChallengeState = {
       id: crypto.randomUUID(),
@@ -181,12 +181,15 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const body = await c.req.json();
     const validation = challengeSchema.safeParse(body);
     if (!validation.success) {
-      return bad(c, validation.error.format());
+      return bad(c, validation.error.message);
     }
     const challenge = new ChallengeEntity(c.env, id);
     if (!await challenge.exists()) return notFound(c, 'Challenge not found');
-    await challenge.patch(validation.data);
-    return ok(c, await challenge.getState());
+    const updatedState = await challenge.mutate(current => ({
+      ...current,
+      ...validation.data
+    }));
+    return ok(c, updatedState);
   });
   admin.delete('/challenges/:id', async (c) => {
     const id = c.req.param('id');
