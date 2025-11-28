@@ -12,7 +12,6 @@ export class UserEntity extends IndexedEntity<User> {
   static seedData = MOCK_USERS;
 }
 // CHALLENGE ENTITY
-// The flag is stored in the entity state but not exposed in the Challenge type
 export type ChallengeState = Challenge & { flag: string };
 export class ChallengeEntity extends IndexedEntity<ChallengeState> {
   static readonly entityName = "challenge";
@@ -28,11 +27,6 @@ export class ChallengeEntity extends IndexedEntity<ChallengeState> {
     flag: "",
   };
   static seedData = MOCK_CHALLENGES;
-  // Method to get challenge data without the flag
-  public getChallengeData(): Challenge {
-    const { flag, ...challengeData } = this.state;
-    return challengeData;
-  }
 }
 // SUBMISSION ENTITY
 export class SubmissionEntity extends IndexedEntity<Submission> {
@@ -45,5 +39,6 @@ export class SubmissionEntity extends IndexedEntity<Submission> {
     userName: "",
     ts: 0,
     pointsAwarded: 0,
+    isFirstBlood: false,
   };
 }

@@ -12,6 +12,7 @@ import { HomePage } from '@/pages/HomePage';
 import { ChallengesPage } from '@/pages/ChallengesPage';
 import { ChallengeDetail } from '@/pages/ChallengeDetail';
 import { AdminPanel } from '@/pages/AdminPanel';
+import { ProfilePage } from '@/pages/ProfilePage';
 const queryClient = new QueryClient();
 const router = createBrowserRouter([
   {
@@ -32,6 +33,11 @@ const router = createBrowserRouter([
   {
     path: "/admin",
     element: <AdminPanel />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/profile",
+    element: <ProfilePage />,
     errorElement: <RouteErrorBoundary />,
   },
 ]);
