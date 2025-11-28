@@ -1,10 +1,9 @@
 import { Hono } from "hono";
 import { z } from 'zod';
-import { zValidator } from '@hono/zod-validator';
 import type { Env } from './core-utils';
 import { UserEntity, ChallengeEntity, SubmissionEntity, ChallengeState } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-import type { ScoreboardEntry, Submission, User } from "@shared/types";
+import type { ScoreboardEntry, Submission, User, Challenge } from "@shared/types";
 const ADMIN_TOKEN = 'secret-admin-token';
 const challengeSchema = z.object({
   title: z.string().min(3),
@@ -26,12 +25,28 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   });
   // --- Challenges ---
   app.get('/api/challenges', async (c) => {
-    const { items } = await ChallengeEntity.list(c.env);
-    const publicChallenges = items.map(challenge => {
+    const { cursor, limit, difficulty, tags } = c.req.query();
+    const limitNum = limit ? parseInt(limit, 10) : 10;
+    const { items, next } = await ChallengeEntity.list(c.env, cursor, limitNum * 3); // Fetch more to filter
+    let filteredItems = items;
+    if (difficulty) {
+      filteredItems = filteredItems.filter(item => item.difficulty === difficulty);
+    }
+    if (tags) {
+      const tagList = tags.split(',').map(t => t.trim());
+      if (tagList.length > 0) {
+        filteredItems = filteredItems.filter(item =>
+          tagList.some(t => item.tags.includes(t))
+        );
+      }
+    }
+    const paginatedItems = filteredItems.slice(0, limitNum);
+    const nextCursor = filteredItems.length > limitNum ? items[items.length - 1].id : next;
+    const publicChallenges = paginatedItems.map(challenge => {
       const { flag, ...rest } = challenge;
       return rest;
     });
-    return ok(c, publicChallenges);
+    return ok(c, { items: publicChallenges, next: nextCursor });
   });
   app.get('/api/challenges/:id', async (c) => {
     const id = c.req.param('id');
@@ -147,22 +162,30 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const { items } = await ChallengeEntity.list(c.env);
     return ok(c, items);
   });
-  admin.post('/challenges', zValidator('json', challengeSchema), async (c) => {
-    const body = c.req.valid('json');
+  admin.post('/challenges', async (c) => {
+    const body = await c.req.json();
+    const validation = challengeSchema.safeParse(body);
+    if (!validation.success) {
+      return bad(c, validation.error.format());
+    }
     const newChallenge: ChallengeState = {
       id: crypto.randomUUID(),
       createdAt: Date.now(),
-      ...body
+      ...validation.data
     };
     await ChallengeEntity.create(c.env, newChallenge);
     return ok(c, newChallenge);
   });
-  admin.put('/challenges/:id', zValidator('json', challengeSchema), async (c) => {
+  admin.put('/challenges/:id', async (c) => {
     const id = c.req.param('id');
-    const body = c.req.valid('json');
+    const body = await c.req.json();
+    const validation = challengeSchema.safeParse(body);
+    if (!validation.success) {
+      return bad(c, validation.error.format());
+    }
     const challenge = new ChallengeEntity(c.env, id);
     if (!await challenge.exists()) return notFound(c, 'Challenge not found');
-    await challenge.patch(body);
+    await challenge.patch(validation.data);
     return ok(c, await challenge.getState());
   });
   admin.delete('/challenges/:id', async (c) => {
