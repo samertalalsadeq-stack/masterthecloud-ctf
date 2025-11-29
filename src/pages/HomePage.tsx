@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
+
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Shield, Trophy, UserCheck, LogIn } from 'lucide-react';
@@ -13,7 +13,7 @@ import { api } from '@/lib/api-client';
 import type { ScoreboardEntry } from '@shared/types';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Toaster } from '@/components/ui/sonner';
-import { useUserStore } from '@/stores/userStore';
+import { useIsLoggedIn } from '@/stores/userStore';
 import { LoginModal } from '@/components/LoginModal';
 const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], isLoading: boolean }) => (
   <Card className="w-full max-w-2xl bg-card/50 backdrop-blur-sm border-border/50">
@@ -35,7 +35,7 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
             <Skeleton className="h-6 w-16" />
           </div>
         ))}
-        {entries?.slice(0, 5).map((entry, index) => (
+        {(entries ?? []).slice(0, 5).map((entry, index) => (
           <motion.div
             key={entry.userId}
             initial={{ opacity: 0, x: -20 }}
@@ -65,13 +65,43 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
   </Card>
 );
 export function HomePage() {
-  const { data: scoreboard, isLoading } = useQuery<ScoreboardEntry[]>({
-    queryKey: ['scoreboard'],
-    queryFn: () => api('/api/scoreboard'),
-    refetchOnWindowFocus: true,
-  });
+  const [scoreboard, setScoreboard] = useState<ScoreboardEntry[] | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const res = await api('/api/scoreboard');
+        if (!mounted) return;
+        setScoreboard(res as ScoreboardEntry[]);
+      } catch (err) {
+        // preserve previous behavior: swallow errors here (no change to existing error handling)
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    };
+
+    // initial fetch
+    fetchData();
+
+    // mimic react-query's refetchOnWindowFocus: true
+    const onFocus = () => {
+      if (mounted) {
+        fetchData();
+      }
+    };
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      mounted = false;
+      window.removeEventListener('focus', onFocus);
+    };
+  }, []);
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
-  const isLoggedIn = useUserStore(s => s.isLoggedIn);
+  const isLoggedIn = useIsLoggedIn();
   return (
     <AppLayout>
       <LoginModal open={isLoginModalOpen} onOpenChange={setLoginModalOpen} />

@@ -55,7 +55,7 @@ export function ProfilePage() {
     queryFn: () => api('/api/challenges'),
   });
   const safeChallenges = challenges?.items ?? [];
-  const solvedChallenges = safeChallenges.filter(c => user?.solvedChallenges.includes(c.id)) || [];
+  const solvedChallenges = safeChallenges.filter(c => user?.solvedChallenges?.includes(c.id) ?? false);
   if (!userId) {
     return (
       <AppLayout>

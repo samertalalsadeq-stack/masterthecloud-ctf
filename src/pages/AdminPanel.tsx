@@ -298,12 +298,10 @@ function AnalyticsTab() {
     queryKey: ['admin-submissions'],
     queryFn: () => api('/api/admin/submissions')
   });
-  const submissionsOverTime = submissions?.
-  sort((a, b) => a.ts - b.ts).
-  map((s, i) => ({
+  const submissionsOverTime = submissions ? submissions.sort((a, b) => a.ts - b.ts).map((s, i) => ({
     name: new Date(s.ts).toLocaleTimeString(),
     submissions: i + 1
-  }));
+  })) : [];
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
@@ -311,7 +309,7 @@ function AnalyticsTab() {
         <div className="w-full h-80 p-4 border rounded-lg">
           {usersLoading ? <p>Loading chart...</p> :
           <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={users?.sort((a, b) => b.score - a.score)}>
+              <BarChart data={users ? users.sort((a, b) => b.score - a.score) : []}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
@@ -328,7 +326,7 @@ function AnalyticsTab() {
         <div className="w-full h-80 p-4 border rounded-lg">
           {submissionsLoading ? <p>Loading chart...</p> :
           <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={submissionsOverTime}>
+              <LineChart data={submissionsOverTime || []}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
