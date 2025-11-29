@@ -50,3 +50,6 @@ export const useUserStore = create<UserState>()(
     }
   )
 );
+// Export typed primitive hooks to enforce best practices
+export const useUserId = () => useUserStore(s => s.userId);
+export const useIsLoggedIn = () => useUserStore(s => s.isLoggedIn);
