@@ -1,8 +1,8 @@
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Award, Shield, BarChart, Calendar } from 'lucide-react';
-import { format } from 'date-fns';
+import { Award, BarChart } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -50,11 +50,12 @@ export function ProfilePage() {
     queryFn: () => api(`/api/users/${userId}`),
     enabled: !!userId,
   });
-  const { data: challenges, isLoading: isLoadingChallenges } = useQuery<Challenge[]>({
+  const { data: challenges, isLoading: isLoadingChallenges } = useQuery<{items: Challenge[]}>({
     queryKey: ['challenges'],
     queryFn: () => api('/api/challenges'),
   });
-  const solvedChallenges = challenges?.filter(c => user?.solvedChallenges.includes(c.id)) || [];
+  const safeChallenges = challenges?.items ?? [];
+  const solvedChallenges = safeChallenges.filter(c => user?.solvedChallenges.includes(c.id)) || [];
   if (!userId) {
     return (
       <AppLayout>
