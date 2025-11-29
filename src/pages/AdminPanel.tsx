@@ -62,7 +62,7 @@ function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: Challen
   }, [challenge, open, form]);
   const mutation = useMutation({
     mutationFn: (values: ChallengeFormValues) => {
-      const payload = { ...values, tags: values.tags.split(',').map((t) => t.trim()) };
+      const payload = { ...values, points: Number(values.points), tags: values.tags.split(',').map((t) => t.trim()) };
       const endpoint = challenge ? `/api/admin/challenges/${challenge.id}` : '/api/admin/challenges';
       const method = challenge ? 'PUT' : 'POST';
       return api(endpoint, { method, body: JSON.stringify(payload) });
@@ -98,7 +98,7 @@ function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: Challen
             } />
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="points" render={({ field }) =>
-              <FormItem><FormLabel>Points</FormLabel><FormControl><Input type="number" {...field} onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))} /></FormControl><FormMessage /></FormItem>
+              <FormItem><FormLabel>Points</FormLabel><FormControl><Input type="number" {...field} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : '')} /></FormControl><FormMessage /></FormItem>
               } />
               <FormField control={form.control} name="difficulty" render={({ field }) =>
               <FormItem><FormLabel>Difficulty</FormLabel>

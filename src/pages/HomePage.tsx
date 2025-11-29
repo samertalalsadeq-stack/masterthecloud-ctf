@@ -86,11 +86,11 @@ export function HomePage() {
               transition={{ duration: 0.7 }}
             >
               <h1 className="text-5xl md:text-7xl font-display font-bold text-balance leading-tight">
-                Welcome to <span className="text-gradient">FlagForge</span>
+                Welcome to <span className="text-gradient">Capture the Cloud</span>
               </h1>
               <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty">
                 A beautiful, lightweight Capture-The-Flag platform built to run at the edge.
-                Hone your skills, solve challenges, and climb the leaderboard.
+                Hone your skills, solve challenges, and climb the leaderboard in the cloud.
               </p>
               <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                 {!isLoggedIn ? (
