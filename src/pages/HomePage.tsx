@@ -80,6 +80,14 @@ export function HomePage() {
         <ThemeToggle />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-16 md:py-24 lg:py-32 text-center">
+            <motion.img
+              src="https://www.cloudflare.com/img/logo/cloudflare-logo-stylized.svg"
+              alt="Cloudflare Logo"
+              className="mx-auto h-12 w-auto md:h-16 mb-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+            />
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
