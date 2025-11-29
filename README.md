@@ -1,4 +1,4 @@
-# Capture the Cloud CTF
+# Catch the Cloud CTF
 A lightweight, visually exceptional Capture-The-Flag (CTF) platform built to run at the Cloudflare edge using Workers and Durable Objects. It supports up to 10 active users, featuring a public scoreboard, challenge gallery, per-challenge solve UI, and an admin panel for managing challenges and viewing user scores. The platform emphasizes a polished, responsive, and accessible UI with shadcn/ui and Tailwind CSS, delivering delightful interactions and seamless performance.
 [cloudflarebutton]
 ## Key Features
@@ -22,7 +22,7 @@ This project uses Bun as the package manager for faster performance. Ensure you 
 1. Clone the repository:
    ```
    git clone <your-repo-url>
-   cd capture-the-cloud
+   cd catch-the-cloud
    ```
 2. Install dependencies:
    ```
