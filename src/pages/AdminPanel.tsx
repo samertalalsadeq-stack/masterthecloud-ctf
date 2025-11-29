@@ -24,7 +24,7 @@ const ADMIN_DEMO_TOKEN = 'secret-admin-token';
 const challengeSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters'),
-  points: z.coerce.number().int().min(1, 'Points must be at least 1'),
+  points: z.number().int().min(1, 'Points must be at least 1'),
   difficulty: z.enum(['Easy', 'Medium', 'Hard', 'Insane']),
   tags: z.string().min(1, 'At least one tag is required'),
   flag: z.string().min(5, 'Flag must be at least 5 characters'),
@@ -98,7 +98,7 @@ function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: Challen
             } />
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="points" render={({ field }) =>
-              <FormItem><FormLabel>Points</FormLabel><FormControl><Input type="number" {...field} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : '')} /></FormControl><FormMessage /></FormItem>
+              <FormItem><FormLabel>Points</FormLabel><FormControl><Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl><FormMessage /></FormItem>
               } />
               <FormField control={form.control} name="difficulty" render={({ field }) =>
               <FormItem><FormLabel>Difficulty</FormLabel>
