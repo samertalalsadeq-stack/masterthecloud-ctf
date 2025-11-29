@@ -54,7 +54,8 @@ export function ChallengeDetail() {
   const [flag, setFlag] = useState('');
   const [showHint, setShowHint] = useState(false);
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
-  const { userId, isLoggedIn } = useUserStore(s => ({ userId: s.userId, isLoggedIn: s.isLoggedIn }));
+  const userId = useUserStore(s => s.userId);
+  const isLoggedIn = useUserStore(s => s.isLoggedIn);
   useEffect(() => {
     if (!isLoggedIn) {
       setLoginModalOpen(true);
