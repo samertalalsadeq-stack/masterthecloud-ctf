@@ -84,7 +84,7 @@ function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: Challen
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>{challenge ? 'Edit' : 'Create'} Challenge</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="bg-white p-3 rounded-md text-gray-900 dark:bg-white dark:text-gray-900 text-sm">
             Fill in the details for the challenge. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
