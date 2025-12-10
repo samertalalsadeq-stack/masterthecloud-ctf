@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Shield, Trophy, UserCheck, LogIn } from 'lucide-react';
@@ -67,10 +66,8 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
 export function HomePage() {
   const [scoreboard, setScoreboard] = useState<ScoreboardEntry[] | undefined>(undefined);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-
   useEffect(() => {
     let mounted = true;
-
     const fetchData = async () => {
       setIsLoading(true);
       try {
@@ -83,10 +80,8 @@ export function HomePage() {
         if (mounted) setIsLoading(false);
       }
     };
-
     // initial fetch
     fetchData();
-
     // mimic react-query's refetchOnWindowFocus: true
     const onFocus = () => {
       if (mounted) {
@@ -94,7 +89,6 @@ export function HomePage() {
       }
     };
     window.addEventListener('focus', onFocus);
-
     return () => {
       mounted = false;
       window.removeEventListener('focus', onFocus);
@@ -119,7 +113,7 @@ export function HomePage() {
                 Welcome to <span className="text-gradient">Catch the Cloud</span>
               </h1>
               <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty">
-                A beautiful, lightweight Capture-The-Flag platform built to run at the edge.
+                A beautiful, lightweight Catch the Cloud platform built to run at the edge.
                 Hone your skills, solve challenges, and climb the leaderboard in the cloud.
               </p>
               <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
