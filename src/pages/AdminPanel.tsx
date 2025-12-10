@@ -121,8 +121,8 @@ function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: Challen
             <FormItem><FormLabel className="text-sm font-bold text-gray-900 bg-white dark:text-gray-900 dark:bg-white">Hint (Optional)</FormLabel><FormControl><Textarea placeholder="Optional hint for solvers" className="bg-white border-gray-300 focus:border-primary/90 focus:ring-primary/50 focus:ring-2 text-gray-900 dark:bg-white dark:border-gray-300 dark:text-gray-900" {...field} /></FormControl><FormMessage /></FormItem>
             } />
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-              <Button type="submit" disabled={mutation.isPending}>
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="bg-white text-gray-900 border border-gray-300 hover:bg-gray-50 hover:text-gray-900 focus:ring-2 focus:ring-primary/50 focus:border-primary/90 dark:bg-white dark:text-gray-900 dark:border-gray-300 dark:hover:bg-gray-50">Cancel</Button>
+              <Button type="submit" disabled={mutation.isPending} className="bg-white text-gray-900 border border-gray-300 hover:bg-gray-50 hover:text-gray-900 focus:ring-2 focus:ring-primary/50 focus:border-primary/90 dark:bg-white dark:text-gray-900 dark:border-gray-300 dark:hover:bg-gray-50">
                 {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Challenge
               </Button>
