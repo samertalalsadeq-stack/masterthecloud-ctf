@@ -91,19 +91,19 @@ function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: Challen
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[70vh] overflow-y-auto pr-4">
             <FormField control={form.control} name="title" render={({ field }) =>
-            <FormItem><FormLabel className="text-sm font-bold text-foreground">Title</FormLabel><FormControl><Input className="border-input/80 focus:border-primary/90 focus:ring-primary/50 focus:ring-2" {...field} /></FormControl><FormMessage /></FormItem>
+            <FormItem><FormLabel className="text-sm font-bold text-gray-900 bg-white dark:text-gray-900 dark:bg-white">Title</FormLabel><FormControl><Input className="bg-white border-gray-300 focus:border-primary/90 focus:ring-primary/50 focus:ring-2 text-gray-900 dark:bg-white dark:border-gray-300 dark:text-gray-900" {...field} /></FormControl><FormMessage /></FormItem>
             } />
             <FormField control={form.control} name="description" render={({ field }) =>
-            <FormItem><FormLabel className="text-sm font-bold text-foreground">Description</FormLabel><FormControl><Textarea className="border-input/80 focus:border-primary/90 focus:ring-primary/50 focus:ring-2" {...field} /></FormControl><FormMessage /></FormItem>
+            <FormItem><FormLabel className="text-sm font-bold text-gray-900 bg-white dark:text-gray-900 dark:bg-white">Description</FormLabel><FormControl><Textarea className="bg-white border-gray-300 focus:border-primary/90 focus:ring-primary/50 focus:ring-2 text-gray-900 dark:bg-white dark:border-gray-300 dark:text-gray-900" {...field} /></FormControl><FormMessage /></FormItem>
             } />
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="points" render={({ field }) =>
-              <FormItem><FormLabel className="text-sm font-bold text-foreground">Points</FormLabel><FormControl><Input type="number" min="1" placeholder="100" className="border-input/80 focus:border-primary/90 focus:ring-primary/50 focus:ring-2" {...field} onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl><FormMessage /></FormItem>
+              <FormItem><FormLabel className="text-sm font-bold text-gray-900 bg-white dark:text-gray-900 dark:bg-white">Points</FormLabel><FormControl><Input type="number" min="1" placeholder="100" className="bg-white border-gray-300 focus:border-primary/90 focus:ring-primary/50 focus:ring-2 text-gray-900 dark:bg-white dark:border-gray-300 dark:text-gray-900" {...field} onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl><FormMessage /></FormItem>
               } />
               <FormField control={form.control} name="difficulty" render={({ field }) =>
-              <FormItem><FormLabel className="text-sm font-bold text-foreground">Difficulty</FormLabel>
+              <FormItem><FormLabel className="text-sm font-bold text-gray-900 bg-white dark:text-gray-900 dark:bg-white">Difficulty</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl><SelectTrigger className="border-input/80 focus:border-primary/90 focus:ring-primary/50 focus:ring-2"><SelectValue /></SelectTrigger></FormControl>
+                    <FormControl><SelectTrigger className="bg-white border-gray-300 focus:border-primary/90 focus:ring-primary/50 focus:ring-2 text-gray-900 dark:bg-white dark:border-gray-300 dark:text-gray-900"><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
                       {(['Easy', 'Medium', 'Hard', 'Insane'] as ChallengeDifficulty[]).map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                     </SelectContent>
@@ -112,13 +112,13 @@ function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: Challen
               } />
             </div>
             <FormField control={form.control} name="tags" render={({ field }) =>
-            <FormItem><FormLabel className="text-sm font-bold text-foreground">Tags (comma-separated)</FormLabel><FormControl><Input placeholder="e.g., web, crypto, forensics" className="border-input/80 focus:border-primary/90 focus:ring-primary/50 focus:ring-2" {...field} /></FormControl><FormMessage /></FormItem>
+            <FormItem><FormLabel className="text-sm font-bold text-gray-900 bg-white dark:text-gray-900 dark:bg-white">Tags (comma-separated)</FormLabel><FormControl><Input placeholder="e.g., web, crypto, forensics" className="bg-white border-gray-300 focus:border-primary/90 focus:ring-primary/50 focus:ring-2 text-gray-900 dark:bg-white dark:border-gray-300 dark:text-gray-900" {...field} /></FormControl><FormMessage /></FormItem>
             } />
             <FormField control={form.control} name="flag" render={({ field }) =>
-            <FormItem><FormLabel className="text-sm font-bold text-foreground">Flag</FormLabel><FormControl><Input className="border-input/80 focus:border-primary/90 focus:ring-primary/50 focus:ring-2" {...field} /></FormControl><FormMessage /></FormItem>
+            <FormItem><FormLabel className="text-sm font-bold text-gray-900 bg-white dark:text-gray-900 dark:bg-white">Flag</FormLabel><FormControl><Input className="bg-white border-gray-300 focus:border-primary/90 focus:ring-primary/50 focus:ring-2 text-gray-900 dark:bg-white dark:border-gray-300 dark:text-gray-900" {...field} /></FormControl><FormMessage /></FormItem>
             } />
             <FormField control={form.control} name="hint" render={({ field }) =>
-            <FormItem><FormLabel className="text-sm font-bold text-foreground">Hint (Optional)</FormLabel><FormControl><Textarea placeholder="Optional hint for solvers" className="border-input/80 focus:border-primary/90 focus:ring-primary/50 focus:ring-2" {...field} /></FormControl><FormMessage /></FormItem>
+            <FormItem><FormLabel className="text-sm font-bold text-gray-900 bg-white dark:text-gray-900 dark:bg-white">Hint (Optional)</FormLabel><FormControl><Textarea placeholder="Optional hint for solvers" className="bg-white border-gray-300 focus:border-primary/90 focus:ring-primary/50 focus:ring-2 text-gray-900 dark:bg-white dark:border-gray-300 dark:text-gray-900" {...field} /></FormControl><FormMessage /></FormItem>
             } />
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
