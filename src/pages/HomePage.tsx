@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Shield, Trophy, UserCheck, LogIn, Cloud } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { useQuery } from '@tanstack/react-query';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,8 +13,9 @@ import { cn } from '@/lib/utils';
 import type { ScoreboardEntry } from '@shared/types';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Toaster } from '@/components/ui/sonner';
-import { useIsLoggedIn } from '@/stores/userStore';
+import { useUserStore } from '@/stores/userStore';
 import { LoginModal } from '@/components/LoginModal';
+
 const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], isLoading: boolean }) => (
   <Card className="w-full max-w-2xl bg-card/50 backdrop-blur-sm border-border/50 shadow-xl">
     <CardHeader className="border-b border-border/50">
@@ -87,13 +87,33 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
 );
 export function HomePage() {
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
-  const isLoggedIn = useIsLoggedIn();
-  const { data: scoreboard, isLoading } = useQuery<ScoreboardEntry[]>({
-    queryKey: ['scoreboard'],
-    queryFn: () => api('/api/scoreboard'),
-    refetchInterval: 30000,
-    refetchOnWindowFocus: true,
-  });
+
+  const [scoreboard, setScoreboard] = useState<ScoreboardEntry[] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const isLoggedInFromStore = useUserStore(state => state.isLoggedIn);
+
+  useEffect(() => {
+    const fetchScoreboard = async () => {
+      setIsLoading(true);
+      try {
+        const res = await api('/api/scoreboard');
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const data: ScoreboardEntry[] = await (res.json() as Promise<ScoreboardEntry[]>);
+        setScoreboard(data);
+      } catch (err) {
+        console.error('Scoreboard fetch error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchScoreboard();
+    const interval = setInterval(fetchScoreboard, 30000);
+    return () => clearInterval(interval);
+  }, []);
   return (
     <AppLayout>
       <LoginModal open={isLoginModalOpen} onOpenChange={setLoginModalOpen} />
@@ -120,7 +140,7 @@ export function HomePage() {
                 interactive challenges.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                {!isLoggedIn ? (
+                {!isLoggedInFromStore ? (
                   <Button
                     onClick={() => setLoginModalOpen(true)}
                     size="lg"
