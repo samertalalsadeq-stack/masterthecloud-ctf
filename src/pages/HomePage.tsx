@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, Trophy, UserCheck, LogIn } from 'lucide-react';
+import { Shield, Trophy, UserCheck, LogIn, Cloud } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,14 +16,23 @@ import { Toaster } from '@/components/ui/sonner';
 import { useIsLoggedIn } from '@/stores/userStore';
 import { LoginModal } from '@/components/LoginModal';
 const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], isLoading: boolean }) => (
-  <Card className="w-full max-w-2xl bg-card/50 backdrop-blur-sm border-border/50">
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2 text-2xl font-display">
-        <Trophy className="text-yellow-400" />
-        Live Scoreboard
+  <Card className="w-full max-w-2xl bg-card/50 backdrop-blur-sm border-border/50 shadow-xl">
+    <CardHeader className="border-b border-border/50">
+      <CardTitle className="flex items-center justify-between text-2xl font-display">
+        <div className="flex items-center gap-2">
+          <Trophy className="text-yellow-400" />
+          Live Scoreboard
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+          </span>
+          <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Live</span>
+        </div>
       </CardTitle>
     </CardHeader>
-    <CardContent>
+    <CardContent className="pt-6">
       <div className="space-y-4">
         {isLoading && Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="flex items-center gap-4">
@@ -34,124 +44,116 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
             <Skeleton className="h-6 w-16" />
           </div>
         ))}
-        {(entries ?? []).slice(0, 5).map((entry, index) => (
+        {!isLoading && (entries ?? []).slice(0, 10).map((entry, index) => (
           <motion.div
             key={entry.userId}
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
-            className="flex items-center gap-4"
+            transition={{ duration: 0.3, delay: index * 0.05 }}
+            className="flex items-center gap-4 p-2 rounded-lg hover:bg-accent/50 transition-colors group"
           >
-            <span className="font-bold text-lg w-6 text-center">{index + 1}</span>
-            <Avatar>
+            <div className={cn(
+              "font-bold text-lg w-8 text-center",
+              index === 0 && "text-yellow-500",
+              index === 1 && "text-gray-400",
+              index === 2 && "text-amber-600"
+            )}>
+              {index + 1}
+            </div>
+            <Avatar className="h-10 w-10 border-2 border-transparent group-hover:border-primary/20 transition-all">
               <AvatarImage src={`https://api.dicebear.com/8.x/bottts/svg?seed=${entry.name}`} />
               <AvatarFallback>{entry.name.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="flex-grow">
-              <p className="font-semibold">{entry.name}</p>
-              <p className="text-sm text-muted-foreground">
-                {entry.solvedCount} solves • Last solve {entry.lastSolveTs ? formatDistanceToNow(new Date(entry.lastSolveTs), { addSuffix: true }) : 'N/A'}
+              <p className="font-semibold text-foreground">{entry.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {entry.solvedCount} solves • {entry.lastSolveTs ? formatDistanceToNow(new Date(entry.lastSolveTs), { addSuffix: true }) : 'No solves yet'}
               </p>
             </div>
-            <div className="font-bold text-lg text-primary">{entry.score} pts</div>
+            <div className="font-bold text-lg text-primary tabular-nums">{entry.score} pts</div>
           </motion.div>
         ))}
         {!isLoading && entries?.length === 0 && (
-          <p className="text-muted-foreground text-center py-4">No scores yet. Be the first to solve a challenge!</p>
+          <div className="text-center py-12">
+            <Cloud className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
+            <p className="text-muted-foreground">The scoreboard is currently empty.</p>
+            <p className="text-sm text-muted-foreground/60">Be the first to claim a flag!</p>
+          </div>
         )}
       </div>
     </CardContent>
   </Card>
 );
+import { cn } from '@/lib/utils';
 export function HomePage() {
-  const [scoreboard, setScoreboard] = useState<ScoreboardEntry[] | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  useEffect(() => {
-    let mounted = true;
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const res = await api('/api/scoreboard');
-        if (!mounted) return;
-        setScoreboard(res as ScoreboardEntry[]);
-      } catch (err) {
-        // preserve previous behavior: swallow errors here (no change to existing error handling)
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    };
-    // initial fetch
-    fetchData();
-    // mimic react-query's refetchOnWindowFocus: true
-    const onFocus = () => {
-      if (mounted) {
-        fetchData();
-      }
-    };
-    window.addEventListener('focus', onFocus);
-    return () => {
-      mounted = false;
-      window.removeEventListener('focus', onFocus);
-    };
-  }, []);
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
   const isLoggedIn = useIsLoggedIn();
+  // Use React Query for Scoreboard data
+  const { data: scoreboard, isLoading } = useQuery<ScoreboardEntry[]>({
+    queryKey: ['scoreboard'],
+    queryFn: () => api('/api/scoreboard'),
+    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchOnWindowFocus: true,
+  });
   return (
     <AppLayout>
       <LoginModal open={isLoginModalOpen} onOpenChange={setLoginModalOpen} />
-      <main className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-mesh opacity-10 dark:opacity-20 pointer-events-none" />
+      <main className="relative min-h-[calc(100vh-4rem)] overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-mesh opacity-5 dark:opacity-10 pointer-events-none" />
         <ThemeToggle />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-16 md:py-24 lg:py-32 text-center">
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
+              transition={{ duration: 0.7, delay: 0.1 }}
             >
-              <h1 className="text-5xl md:text-7xl font-display font-bold text-balance leading-tight">
-                Welcome to <span className="text-gradient">Catch the Cloud</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider mb-6">
+                <Cloud className="h-3 w-3" />
+                Edge-Powered Security
+              </div>
+              <h1 className="text-5xl md:text-7xl font-display font-bold text-balance leading-[1.1] mb-8">
+                Master the <span className="text-gradient">Cloud Capture</span>
               </h1>
-              <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty">
-                A beautiful, lightweight Catch the Cloud platform built to run at the edge.
-                Hone your skills, solve challenges, and climb the leaderboard in the cloud.
+              <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed mb-12">
+                Join our next-generation CTF platform running entirely at the edge. 
+                Test your skills in Web Security, Cryptography, and Forensics through 
+                interactive challenges.
               </p>
-              <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 {!isLoggedIn ? (
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button onClick={() => setLoginModalOpen(true)} size="lg" className="btn-gradient px-8 py-4 text-lg font-semibold">
-                      <LogIn className="mr-2 h-5 w-5" /> Login to Play
-                    </Button>
-                  </motion.div>
+                  <Button 
+                    onClick={() => setLoginModalOpen(true)} 
+                    size="lg" 
+                    className="btn-gradient min-w-[200px] h-14 text-lg font-bold shadow-lg shadow-primary/20"
+                  >
+                    <LogIn className="mr-2 h-5 w-5" /> Start Playing
+                  </Button>
                 ) : (
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button asChild size="lg" className="btn-gradient px-8 py-4 text-lg font-semibold">
-                      <Link to="/challenges">
-                        <Shield className="mr-2 h-5 w-5" /> View Challenges
-                      </Link>
-                    </Button>
-                  </motion.div>
-                )}
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button asChild size="lg" variant="outline" className="px-8 py-4 text-lg font-semibold">
-                    <Link to="/admin">
-                      <UserCheck className="mr-2 h-5 w-5" /> Admin Panel
+                  <Button asChild size="lg" className="btn-gradient min-w-[200px] h-14 text-lg font-bold">
+                    <Link to="/challenges">
+                      <Shield className="mr-2 h-5 w-5" /> All Challenges
                     </Link>
                   </Button>
-                </motion.div>
+                )}
+                <Button asChild size="lg" variant="outline" className="min-w-[200px] h-14 text-lg font-bold backdrop-blur-sm">
+                  <Link to="/admin">
+                    <UserCheck className="mr-2 h-5 w-5" /> Admin Portal
+                  </Link>
+                </Button>
               </div>
             </motion.div>
           </div>
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.4 }}
-            className="flex justify-center pb-16 md:pb-24 lg:pb-32"
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="flex justify-center pb-24"
           >
             <ScoreboardCard entries={scoreboard} isLoading={isLoading} />
           </motion.div>
         </div>
-        <Toaster richColors closeButton />
+        <Toaster richColors closeButton position="top-right" />
       </main>
     </AppLayout>
   );
