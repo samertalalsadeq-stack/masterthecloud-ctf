@@ -27,21 +27,28 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/challenges', async (c) => {
     const { cursor, limit, difficulty, tags } = c.req.query();
     const limitNum = limit ? parseInt(limit, 10) : 10;
-    const { items, next } = await ChallengeEntity.list(c.env, cursor, limitNum * 3); // Fetch more to filter
-    let filteredItems = items;
-    if (difficulty) {
+    // Ensure data exists before listing
+    await ChallengeEntity.ensureSeed(c.env);
+    // Fetch all challenges for robust in-memory filtering (suitable for < 1000 items)
+    const { items: allChallenges } = await ChallengeEntity.list(c.env, null, 100);
+    let filteredItems = allChallenges;
+    if (difficulty && difficulty !== 'all') {
       filteredItems = filteredItems.filter(item => item.difficulty === difficulty);
     }
     if (tags) {
-      const tagList = tags.split(',').map(t => t.trim()).filter(Boolean);
+      const tagList = tags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
       if (tagList.length > 0) {
         filteredItems = filteredItems.filter(item =>
-          tagList.some(t => item.tags.includes(t))
+          tagList.some(t => item.tags.some(it => it.toLowerCase().includes(t)))
         );
       }
     }
-    const paginatedItems = filteredItems.slice(0, limitNum);
-    const nextCursor = filteredItems.length > limitNum ? paginatedItems[paginatedItems.length - 1].id : next;
+    // Pagination logic
+    const startIndex = cursor ? filteredItems.findIndex(item => item.id === cursor) + 1 : 0;
+    const paginatedItems = filteredItems.slice(startIndex, startIndex + limitNum);
+    const nextCursor = (startIndex + limitNum < filteredItems.length) 
+      ? paginatedItems[paginatedItems.length - 1].id 
+      : null;
     const publicChallenges = paginatedItems.map(challenge => {
       const { flag, ...rest } = challenge;
       return rest;
@@ -90,12 +97,11 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (flag.trim() !== challenge.flag) {
       return bad(c, 'Incorrect flag. Try again!');
     }
-    // Correct flag, now handle submission and scoring
     const { items: submissions } = await SubmissionEntity.list(c.env);
     const isFirstBlood = submissions.filter(s => s.challengeId === challengeId).length === 0;
     let pointsAwarded = challenge.points;
     if (isFirstBlood) {
-      pointsAwarded += 50; // First blood bonus
+      pointsAwarded += 50; 
     }
     await userEntity.mutate(u => ({
       ...u,
@@ -114,7 +120,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     await SubmissionEntity.create(c.env, submission);
     return ok(c, { message: `Correct flag! ${isFirstBlood ? 'First blood bonus!': ''}`, pointsAwarded });
   });
-  // --- Scoreboard ---
   app.get('/api/scoreboard', async (c) => {
     const { items: users } = await UserEntity.list(c.env);
     const { items: submissions } = await SubmissionEntity.list(c.env);
@@ -133,7 +138,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     }).sort((a, b) => b.score - a.score || a.lastSolveTs - b.lastSolveTs);
     return ok(c, scoreboard);
   });
-  // --- Users ---
   app.get('/api/users', async (c) => {
     const { items } = await UserEntity.list(c.env);
     return ok(c, items.map(({id, name}) => ({id, name})));
@@ -150,7 +154,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const user: User = { id: crypto.randomUUID(), name: name.trim(), score: 0, solvedChallenges: [] };
     return ok(c, await UserEntity.create(c.env, user));
   });
-  // --- Admin Routes ---
   const admin = new Hono<{ Bindings: Env }>();
   admin.use('*', async (c, next) => {
     if (c.req.header('x-admin-token') !== ADMIN_TOKEN) {
@@ -165,9 +168,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   admin.post('/challenges', async (c) => {
     const body = await c.req.json();
     const validation = challengeSchema.safeParse(body);
-    if (!validation.success) {
-      return bad(c, validation.error.message);
-    }
+    if (!validation.success) return bad(c, validation.error.message);
     const newChallenge: ChallengeState = {
       id: crypto.randomUUID(),
       createdAt: Date.now(),
@@ -180,9 +181,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const id = c.req.param('id');
     const body = await c.req.json();
     const validation = challengeSchema.safeParse(body);
-    if (!validation.success) {
-      return bad(c, validation.error.message);
-    }
+    if (!validation.success) return bad(c, validation.error.message);
     const challenge = new ChallengeEntity(c.env, id);
     if (!await challenge.exists()) return notFound(c, 'Challenge not found');
     const updatedState = await challenge.mutate(current => ({
