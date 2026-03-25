@@ -60,7 +60,7 @@ function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: Challen
         });
       }
     }
-  }, [challenge, open, form]);
+  }, [challenge, open, form.reset]);
   const mutation = useMutation({
     mutationFn: (values: ChallengeFormValues) => {
       const payload = { ...values, points: Number(values.points), tags: values.tags.split(',').map((t) => t.trim()) };
@@ -299,10 +299,12 @@ function AnalyticsTab() {
     queryKey: ['admin-submissions'],
     queryFn: () => api('/api/admin/submissions')
   });
-  const submissionsOverTime = submissions ? submissions.sort((a, b) => a.ts - b.ts).map((s, i) => ({
-    name: new Date(s.ts).toLocaleTimeString(),
-    submissions: i + 1
-  })) : [];
+  const submissionsOverTime = React.useMemo(() => {
+    return submissions ? submissions.slice().sort((a, b) => a.ts - b.ts).map((s, i) => ({
+      name: new Date(s.ts).toLocaleTimeString(),
+      submissions: i + 1
+    })) : [];
+  }, [submissions]);
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
@@ -310,7 +312,7 @@ function AnalyticsTab() {
         <div className="w-full h-80 p-4 border rounded-lg">
           {usersLoading ? <p>Loading chart...</p> :
           <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={users ? users.sort((a, b) => b.score - a.score) : []}>
+              <BarChart data={users ? [...users].sort((a, b) => b.score - a.score) : []}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
@@ -346,7 +348,7 @@ export function AdminPanel() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
   const handleAuth = () => {
-    if (token === ADMIN_DEMO_TOKEN) {
+    if (token.trim() === ADMIN_DEMO_TOKEN.trim()) {
       setAdminToken(token);
       setIsAuthenticated(true);
       toast.success('Authentication successful!');
@@ -364,15 +366,17 @@ export function AdminPanel() {
             <div className="max-w-md mx-auto mt-20 p-8 border rounded-lg shadow-lg bg-card">
               <h1 className="text-2xl font-bold text-center mb-4">Admin Authentication</h1>
               <p className="text-muted-foreground text-center mb-6">Enter the admin token to access the panel.</p>
-              <div className="flex gap-2">
+              <form onSubmit={(e) => { e.preventDefault(); handleAuth(); }} className="flex flex-col sm:flex-row gap-4">
                 <Input
                   type="password"
                   placeholder="Admin Token"
                   value={token}
-                  onChange={(e) => setToken(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAuth()} />
-                <Button onClick={handleAuth}>Login</Button>
-              </div>
+                  onChange={(e) => { setToken(e.target.value); }}
+                  autoFocus={true}
+                  className="w-full"
+                />
+                <Button type="submit">Login</Button>
+              </form>
               <Alert className="mt-4">
                 <AlertTitle>Demo Information</AlertTitle>
                 <AlertDescription>
