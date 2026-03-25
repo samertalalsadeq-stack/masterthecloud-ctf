@@ -94,11 +94,16 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       return bad(c, 'You have already solved this challenge.');
     }
     const challenge = await challengeEntity.getState();
-    if (flag.trim() !== challenge.flag) {
+    const submittedFlag = flag.trim();
+    if (submittedFlag !== challenge.flag) {
       return bad(c, 'Incorrect flag. Try again!');
     }
-    const { items: submissions } = await SubmissionEntity.list(c.env);
-    const isFirstBlood = submissions.filter(s => s.challengeId === challengeId).length === 0;
+
+    // Efficient first-blood check: check if any submission exists for THIS challenge specifically
+    const { items: allSubmissions } = await SubmissionEntity.list(c.env, null, 1000);
+    const existingSolves = allSubmissions.filter(s => s.challengeId === challengeId);
+    const isFirstBlood = existingSolves.length === 0;
+    
     let pointsAwarded = challenge.points;
     if (isFirstBlood) {
       pointsAwarded += 50; 
@@ -121,8 +126,10 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     return ok(c, { message: `Correct flag! ${isFirstBlood ? 'First blood bonus!': ''}`, pointsAwarded });
   });
   app.get('/api/scoreboard', async (c) => {
-    const { items: users } = await UserEntity.list(c.env);
-    const { items: submissions } = await SubmissionEntity.list(c.env);
+    const [{ items: users }, { items: submissions }] = await Promise.all([
+      UserEntity.list(c.env, null, 100),
+      SubmissionEntity.list(c.env, null, 1000)
+    ]);
     const scoreboard: ScoreboardEntry[] = users.map(user => {
       const userSubmissions = submissions.filter(s => s.userId === user.id);
       const lastSolve = userSubmissions.length > 0
