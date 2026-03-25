@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tag, Shield, Trophy, Filter, X } from 'lucide-react';
+import { Tag, Shield, Trophy, Filter, X, RefreshCcw } from 'lucide-react';
 import { Highlight, themes } from 'prism-react-renderer';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Badge } from '@/components/ui/badge';
@@ -108,9 +108,10 @@ export function ChallengesPage() {
   const difficulty = searchParams.get('difficulty') || '';
   const tags = searchParams.get('tags') || '';
   const cursor = searchParams.get('cursor') || '';
-  const { data, isLoading, error } = useQuery<PaginatedResponse<Challenge>>({
+  const { data, isLoading, error, refetch } = useQuery<PaginatedResponse<Challenge>>({
     queryKey: ['challenges', difficulty, tags, cursor],
-    queryFn: () => api('/api/challenges', { params: { difficulty, tags, cursor, limit: 6 } })
+    queryFn: () => api('/api/challenges', { params: { difficulty, tags, cursor, limit: 6 } }),
+    staleTime: 30000,
   });
   const handleFilterChange = (key: 'difficulty' | 'tags', value: string) => {
     setSearchParams(prev => {
@@ -119,7 +120,7 @@ export function ChallengesPage() {
       } else {
         prev.delete(key);
       }
-      prev.delete('cursor'); // Reset pagination on filter change
+      prev.delete('cursor'); 
       return prev;
     });
   };
@@ -142,12 +143,12 @@ export function ChallengesPage() {
               Test your skills across various domains. Each flag you capture brings you closer to victory.
             </p>
           </motion.div>
-          <div className="flex flex-col md:flex-row gap-4 mb-8 p-4 border rounded-lg bg-card/30">
+          <div className="flex flex-col md:flex-row gap-4 mb-8 p-4 border rounded-lg bg-card/30 backdrop-blur-sm">
             <div className="flex items-center gap-2 flex-grow">
               <Filter className="w-5 h-5 text-muted-foreground" />
               <h3 className="font-semibold">Filter Challenges</h3>
             </div>
-            <Select value={difficulty} onValueChange={(v) => handleFilterChange('difficulty', v === 'all' ? '' : v)}>
+            <Select value={difficulty || 'all'} onValueChange={(v) => handleFilterChange('difficulty', v === 'all' ? '' : v)}>
               <SelectTrigger className="w-full md:w-[180px]">
                 <SelectValue placeholder="Difficulty" />
               </SelectTrigger>
@@ -159,44 +160,58 @@ export function ChallengesPage() {
                 <SelectItem value="Insane">Insane</SelectItem>
               </SelectContent>
             </Select>
-            <Input
-              placeholder="Tags (e.g. web,crypto)"
-              className="w-full md:w-[200px]"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleFilterChange('tags', tagInput)}
-            />
+            <div className="flex gap-2">
+              <Input
+                placeholder="Tags (e.g. web,crypto)"
+                className="w-full md:w-[200px]"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleFilterChange('tags', tagInput)}
+              />
+              <Button size="icon" variant="outline" onClick={() => handleFilterChange('tags', tagInput)}>
+                <RefreshCcw className="w-4 h-4" />
+              </Button>
+            </div>
             {(difficulty || tags) && (
               <Button variant="ghost" onClick={clearFilters}><X className="w-4 h-4 mr-2" />Clear</Button>
             )}
           </div>
           {error && (
-            <div className="text-center text-red-500 bg-red-500/10 p-4 rounded-md">
-              Failed to load challenges: {error.message}
+            <div className="text-center space-y-4 p-8 border border-destructive/20 bg-destructive/5 rounded-lg mb-8">
+              <p className="text-destructive font-medium">Failed to load challenges: {error.message}</p>
+              <Button onClick={() => refetch()} variant="outline">Retry Loading</Button>
             </div>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            <AnimatePresence>
-              {isLoading && Array.from({ length: 6 }).map((_, i) => <ChallengeSkeleton key={i} />)}
-              {data?.items?.map((challenge, i) => (
-                <ChallengeCard key={challenge.id} challenge={challenge} index={i} />
-              ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 min-h-[400px]">
+            <AnimatePresence mode="wait">
+              {isLoading ? (
+                Array.from({ length: 6 }).map((_, i) => <ChallengeSkeleton key={i} />)
+              ) : data?.items?.length ? (
+                data.items.map((challenge, i) => (
+                  <ChallengeCard key={challenge.id} challenge={challenge} index={i} />
+                ))
+              ) : (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center col-span-full py-24 border-2 border-dashed rounded-xl bg-muted/20"
+                >
+                  <Shield className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <h2 className="text-2xl font-semibold">No Challenges Found</h2>
+                  <p className="text-muted-foreground mt-2 mb-6">Try adjusting your filters or check back later.</p>
+                  <Button onClick={clearFilters} variant="secondary">Reset All Filters</Button>
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
-          {!isLoading && data?.items?.length === 0 && (
-            <div className="text-center col-span-full py-16">
-              <h2 className="text-2xl font-semibold">No Challenges Found</h2>
-              <p className="text-muted-foreground mt-2">Try adjusting your filters or check back later.</p>
-            </div>
-          )}
           <div className="flex justify-center mt-12">
             {data?.next && (
-              <Button onClick={() => {
+              <Button size="lg" onClick={() => {
                 const newParams = new URLSearchParams(searchParams);
                 newParams.set('cursor', data.next || '');
                 setSearchParams(newParams);
               }}>
-                Load More
+                Load More Challenges
               </Button>
             )}
           </div>
