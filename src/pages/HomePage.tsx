@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { api } from '@/lib/api-client';
+import { cn } from '@/lib/utils';
 import type { ScoreboardEntry } from '@shared/types';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Toaster } from '@/components/ui/sonner';
@@ -84,15 +85,13 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
     </CardContent>
   </Card>
 );
-import { cn } from '@/lib/utils';
 export function HomePage() {
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
   const isLoggedIn = useIsLoggedIn();
-  // Use React Query for Scoreboard data
   const { data: scoreboard, isLoading } = useQuery<ScoreboardEntry[]>({
     queryKey: ['scoreboard'],
     queryFn: () => api('/api/scoreboard'),
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 30000,
     refetchOnWindowFocus: true,
   });
   return (
@@ -116,15 +115,15 @@ export function HomePage() {
                 Master the <span className="text-gradient">Cloud Capture</span>
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed mb-12">
-                Join our next-generation CTF platform running entirely at the edge. 
-                Test your skills in Web Security, Cryptography, and Forensics through 
+                Join our next-generation CTF platform running entirely at the edge.
+                Test your skills in Web Security, Cryptography, and Forensics through
                 interactive challenges.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 {!isLoggedIn ? (
-                  <Button 
-                    onClick={() => setLoginModalOpen(true)} 
-                    size="lg" 
+                  <Button
+                    onClick={() => setLoginModalOpen(true)}
+                    size="lg"
                     className="btn-gradient min-w-[200px] h-14 text-lg font-bold shadow-lg shadow-primary/20"
                   >
                     <LogIn className="mr-2 h-5 w-5" /> Start Playing

@@ -125,8 +125,13 @@ export function ChallengesPage() {
     });
   };
   const clearFilters = () => {
-    setTagInput('');
-    setSearchParams({});
+    setTagInput(''); // Clear local input
+    setSearchParams((prev) => {
+      prev.delete('difficulty');
+      prev.delete('tags');
+      prev.delete('cursor');
+      return prev;
+    });
   };
   return (
     <AppLayout>
