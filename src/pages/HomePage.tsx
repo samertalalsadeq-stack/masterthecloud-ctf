@@ -1,20 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Shield, Trophy, UserCheck, LogIn, Cloud } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import type { ScoreboardEntry, ApiResponse } from '@shared/types';
+import { api } from '@/lib/api-client';
+import type { ScoreboardEntry } from '@shared/types';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Toaster } from '@/components/ui/sonner';
 import { useUserStore } from '@/stores/userStore';
 import { LoginModal } from '@/components/LoginModal';
-
 const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], isLoading: boolean }) => (
   <Card className="w-full max-w-2xl bg-card/50 backdrop-blur-sm border-border/50 shadow-xl">
     <CardHeader className="border-b border-border/50">
@@ -86,33 +87,12 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
 );
 export function HomePage() {
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
-
-  const [scoreboard, setScoreboard] = useState<ScoreboardEntry[] | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
   const isLoggedInFromStore = useUserStore(state => state.isLoggedIn);
-
-  useEffect(() => {
-    const fetchScoreboard = async () => {
-      setIsLoading(true);
-      try {
-        const res: Response = await fetch('/api/scoreboard');
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        const response: ApiResponse<ScoreboardEntry[]> = await res.json();
-        setScoreboard(response.data || []);
-      } catch (err) {
-        console.error('Scoreboard fetch error:', err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchScoreboard();
-    const interval = setInterval(fetchScoreboard, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  const { data: scoreboard, isLoading } = useQuery<ScoreboardEntry[]>({
+    queryKey: ['scoreboard'],
+    queryFn: () => api<ScoreboardEntry[]>('/api/scoreboard'),
+    refetchInterval: 30000,
+  });
   return (
     <AppLayout>
       <LoginModal open={isLoginModalOpen} onOpenChange={setLoginModalOpen} />
