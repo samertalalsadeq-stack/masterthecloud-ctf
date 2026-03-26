@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tag, Shield, Trophy, Filter, X, RefreshCcw } from 'lucide-react';
+import { Tag, Shield, Trophy, Filter, X, RefreshCcw, ChevronLeft } from 'lucide-react';
 import { Highlight, themes } from 'prism-react-renderer';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Badge } from '@/components/ui/badge';
@@ -103,6 +103,7 @@ const ChallengeSkeleton = () => (
     </Card>
   );
 export function ChallengesPage() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [tagInput, setTagInput] = useState(searchParams.get('tags') || '');
   const difficulty = searchParams.get('difficulty') || '';
@@ -137,6 +138,14 @@ export function ChallengesPage() {
     <AppLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-8 md:py-10 lg:py-12">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/')} 
+            className="mb-6 group hover:bg-accent/50 transition-all duration-200 hover:scale-105"
+          >
+            <ChevronLeft className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
+            <span className="font-bold">Back to Home</span>
+          </Button>
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
