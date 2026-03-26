@@ -4,14 +4,13 @@ Wraps children in a sidebar layout. Don't use this if you don't need a sidebar
 import React from "react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-
+import { Toaster } from "@/components/ui/sonner";
 type AppLayoutProps = {
   children: React.ReactNode;
   container?: boolean;
   className?: string;
   contentClassName?: string;
 };
-
 export function AppLayout({ children, container = false, className, contentClassName }: AppLayoutProps): JSX.Element {
   return (
     <SidebarProvider defaultOpen={false}>
@@ -25,6 +24,7 @@ export function AppLayout({ children, container = false, className, contentClass
         ) : (
           children
         )}
+        <Toaster richColors closeButton position="top-right" />
       </SidebarInset>
     </SidebarProvider>
   );

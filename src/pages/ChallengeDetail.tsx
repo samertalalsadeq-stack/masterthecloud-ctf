@@ -78,7 +78,7 @@ export function ChallengeDetail() {
     }),
     onSuccess: (data: { message: string, pointsAwarded: number }) => {
       toast.success(data.message, {
-        description: `You've been awarded ${data.pointsAwarded} points!`,
+        description: `Victory! Awarded ${data.pointsAwarded} points.`,
       });
       queryClient.invalidateQueries({ queryKey: ['scoreboard'] });
       queryClient.invalidateQueries({ queryKey: ['user', userId] });
@@ -172,10 +172,6 @@ export function ChallengeDetail() {
                     </Alert>
                   )}
                 </div>
-                <div className="space-y-4 pt-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2"><Paperclip className="w-5 h-5" /> Attachments</h3>
-                  <p className="text-muted-foreground text-sm">No attachments for this challenge.</p>
-                </div>
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -200,7 +196,7 @@ export function ChallengeDetail() {
                         {mutation.isPending ? (
                           <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
                         ) : (
-                          'Submit'
+                          'Submit Flag'
                         )}
                       </Button>
                     </form>
