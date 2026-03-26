@@ -39,7 +39,7 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
       </CardHeader>
       <CardContent className="pt-6">
         {latestSolveUser && latestSolveUser.lastSolveTs > 0 && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-6 p-3 rounded-xl bg-primary/5 border border-primary/10 flex items-center gap-3"
@@ -133,7 +133,7 @@ export function HomePage() {
     <AppLayout>
       <LoginModal open={isLoginModalOpen} onOpenChange={setLoginModalOpen} />
       <main className="relative min-h-[calc(100vh-4rem)] overflow-hidden flex flex-col">
-        <div className="absolute inset-0 bg-gradient-mesh opacity-[0.03] dark:opacity-[0.08] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-mesh opacity-[0.05] dark:opacity-[0.1] pointer-events-none" />
         <ThemeToggle />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-grow">
           <div className="py-20 md:py-28 lg:py-40 text-center relative">
@@ -142,7 +142,15 @@ export function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
             >
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-black uppercase tracking-[0.2em] mb-8 shadow-sm">
+              <motion.img 
+                src="https://www.cloudflare.com/img/logo/cloudflare-logo-stylized.svg" 
+                alt="Cloudflare"
+                className="h-12 md:h-16 w-auto mx-auto mb-8 block grayscale opacity-80"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              />
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-indigo/10 border border-brand-indigo/20 text-brand-indigo text-xs font-black uppercase tracking-[0.2em] mb-8 shadow-sm">
                 <Cloud className="h-4 w-4" />
                 Edge-Powered Security
               </div>
@@ -150,7 +158,7 @@ export function HomePage() {
                 Master the <span className="text-gradient">Cloud</span>
               </h1>
               <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed mb-16 font-medium">
-                The ultimate capture-the-flag proving ground. 
+                The ultimate capture-the-flag proving ground.
                 Experience a lightning-fast CTF platform running on the global edge.
               </p>
               <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
