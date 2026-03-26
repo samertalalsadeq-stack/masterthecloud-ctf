@@ -42,7 +42,7 @@ export function AppSidebar(): JSX.Element {
             <Cloud className="h-6 w-6" />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-bold tracking-tight text-foreground">Catch the Cloud</span>
+            <span className="text-sm font-bold tracking-tight text-foreground">Master the Cloud</span>
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">CTF Platform</span>
           </div>
         </div>

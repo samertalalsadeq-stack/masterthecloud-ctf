@@ -62,9 +62,9 @@ export function ProfilePage() {
       <AppLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-8 md:py-10 lg:py-12">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/')} 
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/')}
               className="mb-6 group hover:bg-accent/50 transition-all duration-200 hover:scale-105"
             >
               <ChevronLeft className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
@@ -72,7 +72,7 @@ export function ProfilePage() {
             </Button>
             <div className="text-center py-12">
               <h1 className="text-2xl font-bold">Please Log In</h1>
-              <p className="text-muted-foreground mt-2">You need to be logged in to view your profile.</p>
+              <p className="text-muted-foreground mt-2">You need to be logged in to view your Master the Cloud profile.</p>
               <Button asChild className="mt-4">
                 <Link to="/">Go to Home</Link>
               </Button>
@@ -87,9 +87,9 @@ export function ProfilePage() {
     <AppLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-8 md:py-10 lg:py-12">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/')} 
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/')}
             className="mb-6 group hover:bg-accent/50 transition-all duration-200 hover:scale-105"
           >
             <ChevronLeft className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
@@ -102,7 +102,7 @@ export function ProfilePage() {
             className="mb-8"
           >
             <h1 className="text-4xl md:text-5xl font-display font-bold">Your Profile</h1>
-            <p className="mt-2 text-lg text-muted-foreground">Track your progress and celebrate your victories.</p>
+            <p className="mt-2 text-lg text-muted-foreground">Track your progress and celebrate your victories on Master the Cloud.</p>
           </motion.div>
           {isLoading ? <ProfileSkeleton /> : user && (
             <div className="grid md:grid-cols-3 gap-8 items-start">

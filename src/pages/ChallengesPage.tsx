@@ -138,9 +138,9 @@ export function ChallengesPage() {
     <AppLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-8 md:py-10 lg:py-12">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/')} 
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/')}
             className="mb-6 group hover:bg-accent/50 transition-all duration-200 hover:scale-105"
           >
             <ChevronLeft className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
@@ -152,7 +152,7 @@ export function ChallengesPage() {
             transition={{ duration: 0.5 }}
             className="text-center mb-12"
           >
-            <h1 className="text-4xl md:text-5xl font-display font-bold">Challenges</h1>
+            <h1 className="text-4xl md:text-5xl font-display font-bold">Master the Cloud</h1>
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
               Test your skills across various domains. Each flag you capture brings you closer to victory.
             </p>
