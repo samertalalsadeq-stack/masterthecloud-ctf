@@ -66,7 +66,7 @@ img {
   white-space: nowrap;
   border: 0;
 }
-/* 
+/*
    FORCED HIGH-VISIBILITY MODALS
    Strictly targets shadcn/radix Dialog & AlertDialog content.
    Ensures they remain accessible white-theme regardless of site theme.
@@ -101,12 +101,12 @@ img {
 }
 /* Specialized badge styles */
 .text-gradient {
-  background: linear-gradient(135deg, #F38020 0%, #4F46E5 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #F38020 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 .btn-gradient {
-  background: linear-gradient(135deg, #F38020 0%, #4F46E5 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #F38020 100%);
   color: white;
   transition: opacity 0.2s ease;
 }

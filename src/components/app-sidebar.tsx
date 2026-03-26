@@ -38,11 +38,11 @@ export function AppSidebar(): JSX.Element {
     <Sidebar className="border-r border-border/50">
       <SidebarHeader>
         <div className="flex items-center gap-3 px-3 py-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#F38020] to-[#4F46E5] text-white shadow-lg">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#6366f1] to-[#F38020] text-white shadow-lg">
             <Cloud className="h-6 w-6" />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-bold tracking-tight">Catch the Cloud</span>
+            <span className="text-sm font-bold tracking-tight text-foreground">Catch the Cloud</span>
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">CTF Platform</span>
           </div>
         </div>
@@ -57,13 +57,13 @@ export function AppSidebar(): JSX.Element {
                   isActive={location.pathname === item.path}
                   className={cn(
                     "transition-all duration-200 hover:bg-accent group",
-                    location.pathname === item.path && "bg-accent/50 text-primary font-semibold"
+                    location.pathname === item.path && "bg-brand-indigo/10 text-brand-indigo font-semibold"
                   )}
                 >
                   <Link to={item.path} className="flex items-center gap-3">
                     <item.icon className={cn(
                       "h-4 w-4 transition-colors",
-                      location.pathname === item.path ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                      location.pathname === item.path ? "text-brand-indigo" : "text-muted-foreground group-hover:text-foreground"
                     )} />
                     <span>{item.title}</span>
                   </Link>

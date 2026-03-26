@@ -92,6 +92,11 @@ export default {
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
+        brand: {
+          indigo: '#6366f1',
+          violet: '#8b5cf6',
+          orange: '#F38020',
+        },
   			muted: {
   				DEFAULT: 'hsl(var(--muted))',
   				foreground: 'hsl(var(--muted-foreground))'
@@ -231,9 +236,9 @@ export default {
   			'accordion-up': 'accordion-up 0.2s ease-out'
   		},
   		backgroundImage: {
-  			'gradient-rainbow': 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%)',
-  			'gradient-primary': 'linear-gradient(135deg, #667eea, #764ba2)',
-  			'gradient-mesh': 'radial-gradient(at 40% 20%, hsla(28,100%,74%,1) 0px, transparent 50%), radial-gradient(at 80% 0%, hsla(189,100%,56%,1) 0px, transparent 50%), radial-gradient(at 0% 50%, hsla(355,100%,93%,1) 0px, transparent 50%), radial-gradient(at 80% 50%, hsla(340,100%,76%,1) 0px, transparent 50%), radial-gradient(at 0% 100%, hsla(22,100%,77%,1) 0px, transparent 50%), radial-gradient(at 80% 100%, hsla(242,100%,70%,1) 0px, transparent 50%), radial-gradient(at 0% 0%, hsla(343,100%,76%,1) 0px, transparent 50%)'
+  			'gradient-rainbow': 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 25%, #f093fb 50%, #F38020 75%, #4facfe 100%)',
+  			'gradient-primary': 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+  			'gradient-mesh': 'radial-gradient(at 40% 20%, hsla(262,83%,58%,0.4) 0px, transparent 50%), radial-gradient(at 80% 0%, hsla(243,75%,59%,0.4) 0px, transparent 50%), radial-gradient(at 0% 50%, hsla(28,100%,74%,0.2) 0px, transparent 50%), radial-gradient(at 80% 50%, hsla(262,83%,58%,0.3) 0px, transparent 50%), radial-gradient(at 0% 100%, hsla(243,75%,59%,0.4) 0px, transparent 50%), radial-gradient(at 80% 100%, hsla(28,100%,74%,0.2) 0px, transparent 50%), radial-gradient(at 0% 0%, hsla(262,83%,58%,0.3) 0px, transparent 50%)'
   		}
   	}
   },
