@@ -21,11 +21,9 @@ html {
 }
 body {
   margin: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji",
-    "Segoe UI Symbol";
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background-color: rgb(var(--bg));
-  color: rgb(17 24 39 / 1);
+  color: hsl(var(--foreground));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
@@ -54,7 +52,7 @@ img {
   margin-right: auto;
 }
 :focus {
-  outline: 2px solid rgba(99, 102, 241, 0.6);
+  outline: 2px solid hsl(var(--primary) / 0.5);
   outline-offset: 2px;
 }
 .sr-only {
@@ -69,25 +67,49 @@ img {
   border: 0;
 }
 /* 
-  High-Visibility Modal Overrides 
-  Ensures Dialogs and Alert Dialogs stay white with dark text 
-  regardless of the application's global theme (Light/Dark).
+   FORCED HIGH-VISIBILITY MODALS
+   Strictly targets shadcn/radix Dialog & AlertDialog content.
+   Ensures they remain accessible white-theme regardless of site theme.
 */
-[role="dialog"] {
+[role="dialog"][class*="fixed"],
+[role="alertdialog"][class*="fixed"] {
   background-color: #ffffff !important;
-  color: #111827 !important; /* text-gray-900 */
+  color: #0f172a !important; /* slate-900 */
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
 }
-[role="dialog"] h2, 
-[role="dialog"] h3,
-[role="dialog"] p,
-[role="dialog"] label,
-[role="dialog"] span:not([class*="text-"]) {
-  color: #111827 !important;
+[role="dialog"] h1, [role="dialog"] h2, [role="dialog"] h3,
+[role="alertdialog"] h1, [role="alertdialog"] h2, [role="alertdialog"] h3 {
+  color: #0f172a !important;
 }
-[role="dialog"] .text-muted-foreground {
-  color: #4b5563 !important; /* text-gray-600 */
+[role="dialog"] p, [role="alertdialog"] p {
+  color: #475569 !important; /* slate-600 */
 }
-/* Target Radix/Shadcn specifics specifically for background */
-div[data-state="open"] > div[class*="fixed"][class*="bg-background"] {
+[role="dialog"] label, [role="alertdialog"] label {
+  color: #1e293b !important; /* slate-800 */
+  font-weight: 600;
+}
+/* Ensure form inputs inside dialogs look consistent */
+[role="dialog"] input, [role="dialog"] textarea, [role="dialog"] select {
   background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+[role="dialog"] input:focus {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1) !important;
+}
+/* Specialized badge styles */
+.text-gradient {
+  background: linear-gradient(135deg, #F38020 0%, #4F46E5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.btn-gradient {
+  background: linear-gradient(135deg, #F38020 0%, #4F46E5 100%);
+  color: white;
+  transition: opacity 0.2s ease;
+}
+.btn-gradient:hover {
+  opacity: 0.9;
 }

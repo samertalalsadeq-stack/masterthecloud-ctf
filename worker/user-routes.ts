@@ -13,6 +13,8 @@ const challengeSchema = z.object({
   tags: z.array(z.string()),
   flag: z.string().min(5),
   hint: z.string().optional(),
+  codeLanguage: z.string().optional(),
+  codeSnippet: z.string().optional(),
 });
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // --- Seeding ---
@@ -26,11 +28,9 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // --- Challenges ---
   app.get('/api/challenges', async (c) => {
     const { cursor, limit, difficulty, tags } = c.req.query();
-    const limitNum = limit ? parseInt(limit, 10) : 10;
-    // Ensure data exists before listing
-    await ChallengeEntity.ensureSeed(c.env);
-    // Fetch all challenges for robust in-memory filtering (suitable for < 1000 items)
-    const { items: allChallenges } = await ChallengeEntity.list(c.env, null, 100);
+    const limitNum = limit ? Math.min(parseInt(limit, 10), 100) : 10;
+    // Fetch all challenges for robust in-memory filtering (standard CTF size)
+    const { items: allChallenges } = await ChallengeEntity.list(c.env, null, 1000);
     let filteredItems = allChallenges;
     if (difficulty && difficulty !== 'all') {
       filteredItems = filteredItems.filter(item => item.difficulty === difficulty);
@@ -46,8 +46,8 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     // Pagination logic
     const startIndex = cursor ? filteredItems.findIndex(item => item.id === cursor) + 1 : 0;
     const paginatedItems = filteredItems.slice(startIndex, startIndex + limitNum);
-    const nextCursor = (startIndex + limitNum < filteredItems.length) 
-      ? paginatedItems[paginatedItems.length - 1].id 
+    const nextCursor = (startIndex + limitNum < filteredItems.length)
+      ? paginatedItems[paginatedItems.length - 1].id
       : null;
     const publicChallenges = paginatedItems.map(challenge => {
       const { flag, ...rest } = challenge;
@@ -65,9 +65,11 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   });
   app.get('/api/challenges/:id/stats', async (c) => {
     const challengeId = c.req.param('id');
-    const { items: submissions } = await SubmissionEntity.list(c.env);
+    const { items: submissions } = await SubmissionEntity.list(c.env, null, 1000);
     const challengeSubmissions = submissions.filter(s => s.challengeId === challengeId);
-    const firstBloodSubmission = challengeSubmissions.find(s => s.isFirstBlood);
+    // Find first solve strictly by timestamp
+    const sortedSolves = challengeSubmissions.sort((a, b) => a.ts - b.ts);
+    const firstBloodSubmission = sortedSolves[0];
     let firstBloodUser = null;
     if (firstBloodSubmission) {
         const userEntity = new UserEntity(c.env, firstBloodSubmission.userId);
@@ -98,16 +100,11 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (submittedFlag !== challenge.flag) {
       return bad(c, 'Incorrect flag. Try again!');
     }
-
-    // Efficient first-blood check: check if any submission exists for THIS challenge specifically
+    // Atomic detection of First Blood
     const { items: allSubmissions } = await SubmissionEntity.list(c.env, null, 1000);
-    const existingSolves = allSubmissions.filter(s => s.challengeId === challengeId);
-    const isFirstBlood = existingSolves.length === 0;
-    
+    const isFirstBlood = !allSubmissions.some(s => s.challengeId === challengeId);
     let pointsAwarded = challenge.points;
-    if (isFirstBlood) {
-      pointsAwarded += 50; 
-    }
+    if (isFirstBlood) pointsAwarded += 50;
     await userEntity.mutate(u => ({
       ...u,
       score: u.score + pointsAwarded,
@@ -127,8 +124,8 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   });
   app.get('/api/scoreboard', async (c) => {
     const [{ items: users }, { items: submissions }] = await Promise.all([
-      UserEntity.list(c.env, null, 100),
-      SubmissionEntity.list(c.env, null, 1000)
+      UserEntity.list(c.env, null, 1000),
+      SubmissionEntity.list(c.env, null, 5000)
     ]);
     const scoreboard: ScoreboardEntry[] = users.map(user => {
       const userSubmissions = submissions.filter(s => s.userId === user.id);
@@ -142,7 +139,14 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
         solvedCount: user.solvedChallenges.length,
         lastSolveTs: lastSolve,
       };
-    }).sort((a, b) => b.score - a.score || a.lastSolveTs - b.lastSolveTs);
+    }).sort((a, b) => {
+      // Primary: Score (Descending)
+      if (b.score !== a.score) return b.score - a.score;
+      // Secondary: Last Solve Timestamp (Ascending - earlier solve wins)
+      if (a.lastSolveTs === 0 && b.lastSolveTs !== 0) return 1;
+      if (b.lastSolveTs === 0 && a.lastSolveTs !== 0) return -1;
+      return a.lastSolveTs - b.lastSolveTs;
+    });
     return ok(c, scoreboard);
   });
   app.get('/api/users', async (c) => {
@@ -161,6 +165,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const user: User = { id: crypto.randomUUID(), name: name.trim(), score: 0, solvedChallenges: [] };
     return ok(c, await UserEntity.create(c.env, user));
   });
+  // --- Admin Routes ---
   const admin = new Hono<{ Bindings: Env }>();
   admin.use('*', async (c, next) => {
     if (c.req.header('x-admin-token') !== ADMIN_TOKEN) {
