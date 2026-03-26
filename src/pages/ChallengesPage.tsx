@@ -120,12 +120,12 @@ export function ChallengesPage() {
       } else {
         prev.delete(key);
       }
-      prev.delete('cursor'); 
+      prev.delete('cursor');
       return prev;
     });
   };
   const clearFilters = () => {
-    setTagInput(''); // Clear local input
+    setTagInput('');
     setSearchParams((prev) => {
       prev.delete('difficulty');
       prev.delete('tags');
@@ -187,19 +187,37 @@ export function ChallengesPage() {
               <Button onClick={() => refetch()} variant="outline">Retry Loading</Button>
             </div>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 min-h-[400px]">
+          <div className="min-h-[400px]">
             <AnimatePresence mode="wait">
               {isLoading ? (
-                Array.from({ length: 6 }).map((_, i) => <ChallengeSkeleton key={i} />)
-              ) : data?.items?.length ? (
-                data.items.map((challenge, i) => (
-                  <ChallengeCard key={challenge.id} challenge={challenge} index={i} />
-                ))
-              ) : (
-                <motion.div 
+                <motion.div
+                  key="loading"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-center col-span-full py-24 border-2 border-dashed rounded-xl bg-muted/20"
+                  exit={{ opacity: 0 }}
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
+                >
+                  {Array.from({ length: 6 }).map((_, i) => <ChallengeSkeleton key={i} />)}
+                </motion.div>
+              ) : data?.items?.length ? (
+                <motion.div
+                  key="list"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
+                >
+                  {data.items.map((challenge, i) => (
+                    <ChallengeCard key={challenge.id} challenge={challenge} index={i} />
+                  ))}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-center py-24 border-2 border-dashed rounded-xl bg-muted/20"
                 >
                   <Shield className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
                   <h2 className="text-2xl font-semibold">No Challenges Found</h2>

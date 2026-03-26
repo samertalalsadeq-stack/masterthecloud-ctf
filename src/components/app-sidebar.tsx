@@ -1,6 +1,8 @@
 import React from "react";
-import { Home, Shield, User, Lock, Cloud, Terminal } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Home, Shield, User, Lock, Cloud, Terminal, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Sidebar,
   SidebarContent,
@@ -12,8 +14,20 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { useUserStore } from "@/stores/userStore";
 export function AppSidebar(): JSX.Element {
   const location = useLocation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const isLoggedIn = useUserStore(s => s.isLoggedIn);
+  const logout = useUserStore(s => s.logout);
+  const handleLogout = () => {
+    logout();
+    queryClient.invalidateQueries({ queryKey: ['scoreboard'] });
+    queryClient.invalidateQueries({ queryKey: ['user'] });
+    toast.success("Logged out successfully");
+    navigate("/");
+  };
   const menuItems = [
     { title: "Home", icon: Home, path: "/" },
     { title: "Challenges", icon: Shield, path: "/challenges" },
@@ -38,8 +52,8 @@ export function AppSidebar(): JSX.Element {
           <SidebarMenu className="gap-1 px-2">
             {menuItems.map((item) => (
               <SidebarMenuItem key={item.path}>
-                <SidebarMenuButton 
-                  asChild 
+                <SidebarMenuButton
+                  asChild
                   isActive={location.pathname === item.path}
                   className={cn(
                     "transition-all duration-200 hover:bg-accent group",
@@ -56,6 +70,19 @@ export function AppSidebar(): JSX.Element {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
+            {isLoggedIn && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={handleLogout}
+                  className="transition-all duration-200 hover:bg-destructive/10 hover:text-destructive group text-muted-foreground"
+                >
+                  <div className="flex items-center gap-3 w-full">
+                    <LogOut className="h-4 w-4 group-hover:text-destructive transition-colors" />
+                    <span>Logout</span>
+                  </div>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
