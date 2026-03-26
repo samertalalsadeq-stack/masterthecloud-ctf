@@ -7,7 +7,6 @@ export function setAdminToken(token: string | null) {
 export async function api<T>(path: string, init?: RequestInit & { params?: Record<string, any> }): Promise<T> {
   const headers = new Headers(init?.headers);
   headers.set('Content-Type', 'application/json');
-  // Apply admin token if it exists and we're hitting an admin endpoint
   if (adminToken && path.startsWith('/api/admin')) {
     headers.set('x-admin-token', adminToken);
   }
@@ -25,23 +24,27 @@ export async function api<T>(path: string, init?: RequestInit & { params?: Recor
   delete finalInit.params;
   try {
     const res = await fetch(fullPath, { ...finalInit, headers });
-    // Handle authentication failures globally
     if (res.status === 401) {
       setAdminToken(null);
-      // Access store state outside of React lifecycle to clear session
       useUserStore.getState().logout();
-      // If this was an admin request, we throw to be caught by the UI
       if (path.startsWith('/api/admin')) {
         throw new Error('Unauthorized admin access. Please log in again.');
       }
     }
-    const json = (await res.json()) as ApiResponse<T>;
+    const text = await res.text();
+    let json: ApiResponse<T>;
+    try {
+      json = JSON.parse(text) as ApiResponse<T>;
+    } catch (e) {
+      // Fallback for non-JSON responses (e.g., 500 error pages)
+      throw new Error(text || `Server returned status ${res.status}`);
+    }
     if (!res.ok || !json.success || json.data === undefined) {
       throw new Error(json.error || 'Request failed');
     }
     return json.data;
   } catch (error) {
-    console.error(`[API Error] ${path}:`, error);
+    console.error(`[API Error] ${path}:`, error instanceof Error ? error.message : error);
     throw error;
   }
 }
