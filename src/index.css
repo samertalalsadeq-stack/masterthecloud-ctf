@@ -69,7 +69,7 @@ img {
 /*
    FORCED HIGH-VISIBILITY MODALS
    Strictly targets shadcn/radix Dialog & AlertDialog content.
-   Ensures they remain accessible white-theme regardless of site theme.
+   Ensures they remain accessible white-theme for "Catch the Cloud" high standards.
 */
 [role="dialog"][class*="fixed"],
 [role="alertdialog"][class*="fixed"] {
@@ -99,7 +99,7 @@ img {
   border-color: #6366f1 !important;
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1) !important;
 }
-/* Specialized badge styles */
+/* Specialized badge and button styles using brand palette */
 .text-gradient {
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #F38020 100%);
   -webkit-background-clip: text;

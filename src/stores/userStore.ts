@@ -31,12 +31,12 @@ export const useUserStore = create<UserState>()(
         }
         set(update);
       },
-      logout: () => set({ 
-        userId: null, 
-        userName: null, 
-        isLoggedIn: false, 
-        adminToken: null, 
-        adminTokenExpiry: null 
+      logout: () => set({
+        userId: null,
+        userName: null,
+        isLoggedIn: false,
+        adminToken: null,
+        adminTokenExpiry: null
       }),
       refreshAdminToken: () => {
         const adminTokenExpiry = get().adminTokenExpiry;
@@ -46,7 +46,7 @@ export const useUserStore = create<UserState>()(
       },
     }),
     {
-      name: 'flagforge-user-storage',
+      name: 'catch-the-cloud-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         userId: state.userId,
