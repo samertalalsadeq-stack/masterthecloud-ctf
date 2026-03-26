@@ -45,8 +45,8 @@ const challengeSchema = z.object({
   hint: z.string().optional()
 });
 type ChallengeFormValues = z.infer<typeof challengeSchema>;
-type ChallengeWithFlag = Challenge & {flag: string;};
-function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: ChallengeWithFlag;onOpenChange: (open: boolean) => void;open: boolean;}) {
+type ChallengeWithFlag = Challenge & { flag: string };
+function ChallengeDialog({ challenge, onOpenChange, open }: { challenge?: ChallengeWithFlag; onOpenChange: (open: boolean) => void; open: boolean; }) {
   const queryClient = useQueryClient();
   const form = useForm<ChallengeFormValues>({
     resolver: zodResolver(challengeSchema),
@@ -76,7 +76,11 @@ function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: Challen
   }, [challenge, open, form]);
   const mutation = useMutation({
     mutationFn: (values: ChallengeFormValues) => {
-      const payload = { ...values, points: Number(values.points), tags: values.tags.split(',').map((t) => t.trim()) };
+      const payload = { 
+        ...values, 
+        points: Number(values.points), 
+        tags: values.tags.split(',').map((t) => t.trim()) 
+      };
       const endpoint = challenge ? `/api/admin/challenges/${challenge.id}` : '/api/admin/challenges';
       const method = challenge ? 'PUT' : 'POST';
       return api(endpoint, { method, body: JSON.stringify(payload) });
@@ -95,56 +99,82 @@ function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: Challen
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] bg-white text-gray-900 dark:bg-white dark:text-gray-900 border-gray-200">
+      <DialogContent className="sm:max-w-[600px] bg-white text-gray-900 border-gray-200 shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-gray-900">{challenge ? 'Edit' : 'Create'} Challenge</DialogTitle>
+          <DialogTitle className="text-gray-900 text-2xl font-bold">{challenge ? 'Edit' : 'Create'} Challenge</DialogTitle>
           <DialogDescription className="text-gray-600">
-            Fill in the details for the challenge. Click save when you're done.
+            Provide the technical details for this capture-the-flag challenge.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[70vh] overflow-y-auto pr-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
             <FormField control={form.control} name="title" render={({ field }) =>
-              <FormItem><FormLabel className="font-bold text-gray-900">Title</FormLabel><FormControl><Input className="bg-white border-gray-300 text-gray-900 focus:ring-primary/50" {...field} /></FormControl><FormMessage /></FormItem>
+              <FormItem>
+                <FormLabel className="font-bold text-gray-900">Challenge Title</FormLabel>
+                <FormControl><Input className="bg-white border-gray-300 text-gray-900 h-10" placeholder="Web Exploration 101" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
             } />
             <FormField control={form.control} name="description" render={({ field }) =>
-              <FormItem><FormLabel className="font-bold text-gray-900">Description</FormLabel><FormControl><Textarea className="bg-white border-gray-300 text-gray-900 focus:ring-primary/50" {...field} /></FormControl><FormMessage /></FormItem>
+              <FormItem>
+                <FormLabel className="font-bold text-gray-900">Description (Markdown Supported)</FormLabel>
+                <FormControl><Textarea className="bg-white border-gray-300 text-gray-900 min-h-[100px]" placeholder="Describe the vulnerability..." {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
             } />
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="points" render={({ field }) =>
-                <FormItem><FormLabel className="font-bold text-gray-900">Points</FormLabel><FormControl><Input type="number" className="bg-white border-gray-300 text-gray-900 focus:ring-primary/50" {...field} onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl><FormMessage /></FormItem>
+                <FormItem>
+                  <FormLabel className="font-bold text-gray-900">Points</FormLabel>
+                  <FormControl><Input type="number" className="bg-white border-gray-300 text-gray-900 h-10" {...field} onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl>
+                  <FormMessage />
+                </FormItem>
               } />
               <FormField control={form.control} name="difficulty" render={({ field }) =>
-                <FormItem><FormLabel className="font-bold text-gray-900">Difficulty</FormLabel>
+                <FormItem>
+                  <FormLabel className="font-bold text-gray-900">Difficulty</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl><SelectTrigger className="bg-white border-gray-300 text-gray-900 focus:ring-primary/50"><SelectValue /></SelectTrigger></FormControl>
+                    <FormControl><SelectTrigger className="bg-white border-gray-300 text-gray-900 h-10"><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent className="bg-white">
-                      {(['Easy', 'Medium', 'Hard', 'Insane'] as ChallengeDifficulty[]).map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                      {(['Easy', 'Medium', 'Hard', 'Insane'] as ChallengeDifficulty[]).map((d) => <SelectItem key={d} value={d} className="text-gray-900">{d}</SelectItem>)}
                     </SelectContent>
                   </Select><FormMessage />
                 </FormItem>
               } />
             </div>
             <FormField control={form.control} name="tags" render={({ field }) =>
-              <FormItem><FormLabel className="font-bold text-gray-900">Tags (comma-separated)</FormLabel><FormControl><Input className="bg-white border-gray-300 text-gray-900 focus:ring-primary/50" {...field} /></FormControl><FormMessage /></FormItem>
+              <FormItem>
+                <FormLabel className="font-bold text-gray-900">Tags (comma-separated)</FormLabel>
+                <FormControl><Input className="bg-white border-gray-300 text-gray-900 h-10" placeholder="web, crypto, pwn" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
             } />
             <FormField control={form.control} name="flag" render={({ field }) =>
-              <FormItem><FormLabel className="font-bold text-gray-900">Flag</FormLabel><FormControl><Input className="bg-white border-gray-300 text-gray-900 focus:ring-primary/50" {...field} /></FormControl><FormMessage /></FormItem>
+              <FormItem>
+                <FormLabel className="font-bold text-gray-900">Correct Flag</FormLabel>
+                <FormControl><Input className="bg-white border-gray-300 text-gray-900 h-10 font-mono" placeholder="FLAG{secret}" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
             } />
             <FormField control={form.control} name="hint" render={({ field }) =>
-              <FormItem><FormLabel className="font-bold text-gray-900">Hint (Optional)</FormLabel><FormControl><Textarea className="bg-white border-gray-300 text-gray-900 focus:ring-primary/50" {...field} /></FormControl><FormMessage /></FormItem>
+              <FormItem>
+                <FormLabel className="font-bold text-gray-900">Hint (Optional)</FormLabel>
+                <FormControl><Textarea className="bg-white border-gray-300 text-gray-900 h-20" placeholder="Helpful nudge..." {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
             } />
-            <DialogFooter className="pt-4">
-              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="text-gray-900 hover:bg-gray-100 border border-transparent">Cancel</Button>
-              <Button type="submit" disabled={mutation.isPending} className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-8">
+            <DialogFooter className="pt-6 border-t border-gray-100">
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="text-gray-600 hover:bg-gray-100">Cancel</Button>
+              <Button type="submit" disabled={mutation.isPending} className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-8 rounded-xl shadow-lg shadow-primary/20">
                 {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Challenge
+                {challenge ? 'Update Challenge' : 'Create Challenge'}
               </Button>
             </DialogFooter>
           </form>
         </Form>
       </DialogContent>
-    </Dialog>);
+    </Dialog>
+  );
 }
 function ChallengesTab() {
   const queryClient = useQueryClient();
@@ -175,48 +205,66 @@ function ChallengesTab() {
   return (
     <div>
       <ChallengeDialog open={isDialogOpen} onOpenChange={setDialogOpen} challenge={selectedChallenge} />
-      <div className="flex justify-end mb-4">
-        <Button onClick={handleAdd}><PlusCircle className="w-4 h-4 mr-2" /> Add Challenge</Button>
+      <div className="flex justify-end mb-6">
+        <Button onClick={handleAdd} className="rounded-xl h-11 px-6 shadow-lg shadow-primary/10">
+          <PlusCircle className="w-4 h-4 mr-2" /> Add New Challenge
+        </Button>
       </div>
-      <div className="border rounded-lg bg-card/50">
+      <div className="border rounded-2xl bg-card/50 overflow-hidden backdrop-blur-sm">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-muted/30">
             <TableRow>
-              <TableHead>Title</TableHead><TableHead>Points</TableHead><TableHead>Difficulty</TableHead><TableHead>Flag</TableHead><TableHead>Actions</TableHead>
+              <TableHead className="font-bold">Title</TableHead>
+              <TableHead className="font-bold">Points</TableHead>
+              <TableHead className="font-bold">Difficulty</TableHead>
+              <TableHead className="font-bold">Flag</TableHead>
+              <TableHead className="font-bold text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading && <TableRow><TableCell colSpan={5} className="text-center">Loading...</TableCell></TableRow>}
-            {challenges?.map((c) =>
-              <TableRow key={c.id}>
-                <TableCell className="font-medium">{c.title}</TableCell><TableCell>{c.points}</TableCell><TableCell>{c.difficulty}</TableCell>
-                <TableCell><code className="font-mono text-xs bg-muted p-1 rounded">{c.flag}</code></TableCell>
-                <TableCell className="space-x-2">
-                  <Button variant="outline" size="icon" onClick={() => handleEdit(c)}><Edit className="w-4 h-4" /></Button>
+            {isLoading ? (
+              <TableRow><TableCell colSpan={5} className="text-center py-12 text-muted-foreground">Loading challenges...</TableCell></TableRow>
+            ) : challenges?.length === 0 ? (
+              <TableRow><TableCell colSpan={5} className="text-center py-12 text-muted-foreground">No challenges created yet.</TableCell></TableRow>
+            ) : challenges?.map((c) => (
+              <TableRow key={c.id} className="hover:bg-accent/10 transition-colors">
+                <TableCell className="font-semibold text-foreground">{c.title}</TableCell>
+                <TableCell className="font-bold text-primary">{c.points}</TableCell>
+                <TableCell>
+                   <span className="px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground text-xs font-bold uppercase tracking-wider">
+                    {c.difficulty}
+                   </span>
+                </TableCell>
+                <TableCell><code className="font-mono text-xs bg-muted/50 p-1.5 rounded-md border border-border/50">{c.flag}</code></TableCell>
+                <TableCell className="text-right space-x-2">
+                  <Button variant="outline" size="icon" className="rounded-lg h-9 w-9" onClick={() => handleEdit(c)}><Edit className="w-4 h-4" /></Button>
                   <AlertDialog>
-                    <AlertDialogTrigger asChild><Button variant="destructive" size="icon"><Trash2 className="w-4 h-4" /></Button></AlertDialogTrigger>
-                    <AlertDialogContent className="bg-white text-gray-900 dark:bg-white dark:text-gray-900 border-gray-200">
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="rounded-lg h-9 w-9 text-destructive hover:bg-destructive/10"><Trash2 className="w-4 h-4" /></Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-white text-gray-900 border-gray-200 rounded-2xl p-8">
                       <AlertDialogHeader>
-                        <AlertDialogTitle className="text-gray-900 text-xl font-bold">Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription className="text-gray-600">
-                          This action cannot be undone. This will permanently delete the <strong>{c.title}</strong> challenge and remove it from our servers.
+                        <AlertDialogTitle className="text-gray-900 text-2xl font-black">Confirm Deletion</AlertDialogTitle>
+                        <AlertDialogDescription className="text-gray-600 text-lg">
+                          This will permanently remove <strong>{c.title}</strong> and all associated submission data. This action is irreversible.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
-                      <AlertDialogFooter className="pt-4">
-                        <AlertDialogCancel className="bg-white text-gray-900 border-gray-300 hover:bg-gray-100">Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => deleteMutation.mutate(c.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold">
-                          Delete Challenge
+                      <AlertDialogFooter className="pt-8">
+                        <AlertDialogCancel className="bg-white text-gray-900 border-gray-300 hover:bg-gray-100 rounded-xl h-11 px-6 font-bold">Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => deleteMutation.mutate(c.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl h-11 px-6 font-bold shadow-lg shadow-destructive/20">
+                          Permanently Delete
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
                 </TableCell>
               </TableRow>
-            )}
+            ))}
           </TableBody>
         </Table>
       </div>
-    </div>);
+    </div>
+  );
 }
 function UsersTab() {
   const { data: users, isLoading } = useQuery<User[]>({
@@ -234,41 +282,48 @@ function UsersTab() {
     }
     const headers = "userId,name,score,solvedCount,lastSolveTs\n";
     const csv = scoreboard.map((row) => `${row.userId},${row.name},${row.score},${row.solvedCount},${row.lastSolveTs}`).join("\n");
-    const blob = new Blob([headers + csv], { type: 'text/csv;charset=utf--8;' });
+    const blob = new Blob([headers + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", `scoreboard-${new Date().toISOString()}.csv`);
+    link.setAttribute("download", `flagforge-scoreboard-${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("Scoreboard exported successfully!");
+    toast.success("Scoreboard CSV generated!");
   };
   return (
     <div>
-      <div className="flex justify-end mb-4">
-        <Button onClick={handleExport} variant="outline"><Download className="w-4 h-4 mr-2" /> Export CSV</Button>
+      <div className="flex justify-end mb-6">
+        <Button onClick={handleExport} variant="outline" className="rounded-xl h-11 px-6"><Download className="w-4 h-4 mr-2" /> Export CSV</Button>
       </div>
-      <div className="border rounded-lg bg-card/50">
+      <div className="border rounded-2xl bg-card/50 overflow-hidden backdrop-blur-sm">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-muted/30">
             <TableRow>
-              <TableHead>ID</TableHead><TableHead>Name</TableHead><TableHead>Score</TableHead><TableHead>Solved</TableHead>
+              <TableHead className="font-bold">Player Name</TableHead>
+              <TableHead className="font-bold">Total Score</TableHead>
+              <TableHead className="font-bold">Captures</TableHead>
+              <TableHead className="font-bold text-right">System ID</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading && <TableRow><TableCell colSpan={4} className="text-center">Loading...</TableCell></TableRow>}
-            {users?.map((u) =>
-              <TableRow key={u.id}>
-                <TableCell><code className="font-mono text-xs">{u.id.slice(0, 8)}</code></TableCell>
-                <TableCell className="font-medium">{u.name}</TableCell><TableCell className="font-bold text-primary">{u.score}</TableCell><TableCell>{u.solvedChallenges.length}</TableCell>
+            {isLoading ? (
+              <TableRow><TableCell colSpan={4} className="text-center py-12">Retrieving players...</TableCell></TableRow>
+            ) : users?.map((u) => (
+              <TableRow key={u.id} className="hover:bg-accent/10">
+                <TableCell className="font-bold text-foreground">{u.name}</TableCell>
+                <TableCell className="font-black text-primary tabular-nums">{u.score}</TableCell>
+                <TableCell>{u.solvedChallenges.length} flags</TableCell>
+                <TableCell className="text-right"><code className="font-mono text-[10px] text-muted-foreground uppercase">{u.id.slice(0, 12)}...</code></TableCell>
               </TableRow>
-            )}
+            ))}
           </TableBody>
         </Table>
       </div>
-    </div>);
+    </div>
+  );
 }
 function SubmissionsTab() {
   const { data: submissions, isLoading } = useQuery<Submission[]>({
@@ -276,37 +331,38 @@ function SubmissionsTab() {
     queryFn: () => api('/api/admin/submissions')
   });
   return (
-    <div>
-      <div className="border rounded-lg bg-card/50">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Challenge ID</TableHead>
-              <TableHead>User</TableHead>
-              <TableHead>Points</TableHead>
-              <TableHead>Time</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">Loading...</TableCell>
+    <div className="border rounded-2xl bg-card/50 overflow-hidden backdrop-blur-sm">
+      <Table>
+        <TableHeader className="bg-muted/30">
+          <TableRow>
+            <TableHead className="font-bold">Timestamp</TableHead>
+            <TableHead className="font-bold">Player</TableHead>
+            <TableHead className="font-bold">Points</TableHead>
+            <TableHead className="font-bold text-right">Submission ID</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {isLoading ? (
+            <TableRow><TableCell colSpan={4} className="text-center py-12">Loading activity...</TableCell></TableRow>
+          ) : (
+            submissions?.map(s => (
+              <TableRow key={s.id} className="hover:bg-accent/10">
+                <TableCell className="text-muted-foreground font-mono text-xs">{new Date(s.ts).toLocaleString()}</TableCell>
+                <TableCell className="font-bold text-foreground">{s.userName}</TableCell>
+                <TableCell>
+                  <span className={cn(
+                    "font-bold tabular-nums px-2 py-0.5 rounded-md",
+                    s.isFirstBlood ? "bg-yellow-500/10 text-yellow-600" : "bg-green-500/10 text-green-600"
+                  )}>
+                    +{s.pointsAwarded}{s.isFirstBlood && " 🔥"}
+                  </span>
+                </TableCell>
+                <TableCell className="text-right font-mono text-[10px] text-muted-foreground uppercase">{s.id.slice(0, 8)}</TableCell>
               </TableRow>
-            ) : (
-              submissions?.map(s => (
-                <TableRow key={s.id}>
-                  <TableCell><code className="font-mono text-xs">{s.id.slice(0, 8)}</code></TableCell>
-                  <TableCell><code className="font-mono text-xs">{s.challengeId.slice(0, 8)}</code></TableCell>
-                  <TableCell className="font-medium">{s.userName}</TableCell>
-                  <TableCell className="font-bold text-primary">+{s.pointsAwarded}</TableCell>
-                  <TableCell className="text-muted-foreground">{new Date(s.ts).toLocaleString()}</TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            ))
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 }
@@ -321,51 +377,46 @@ function AnalyticsTab() {
   });
   const submissionsOverTime = React.useMemo(() => {
     return submissions ? submissions.slice().sort((a, b) => a.ts - b.ts).map((s, i) => ({
-      name: new Date(s.ts).toLocaleTimeString(),
+      name: new Date(s.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       submissions: i + 1
     })) : [];
   }, [submissions]);
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <h3 className="text-xl font-semibold mb-4">User Scores</h3>
-        <div className="w-full h-80 p-4 border rounded-lg bg-card/30 backdrop-blur-sm">
-          {usersLoading ? <p>Loading chart...</p> :
+      <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
+        <h3 className="text-xl font-bold font-display px-2">Player Distribution</h3>
+        <div className="w-full h-80 p-6 border rounded-2xl bg-card/30 backdrop-blur-sm shadow-inner">
+          {usersLoading ? <div className="flex items-center justify-center h-full text-muted-foreground">Calculating...</div> :
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={users ? [...users].sort((a, b) => b.score - a.score) : []}>
-                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
-                <XAxis dataKey="name" stroke="#888" fontSize={12} />
-                <YAxis stroke="#888" fontSize={12} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', color: '#333', border: 'none', borderRadius: '8px' }}
-                />
-                <Legend />
+              <BarChart data={users ? [...users].sort((a, b) => b.score - a.score).slice(0, 10) : []}>
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.05} />
+                <XAxis dataKey="name" stroke="#888" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis stroke="#888" fontSize={10} tickLine={false} axisLine={false} />
+                <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
                 <Bar dataKey="score" fill="#F38020" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           }
         </div>
       </motion.div>
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
-        <h3 className="text-xl font-semibold mb-4">Submissions Over Time</h3>
-        <div className="w-full h-80 p-4 border rounded-lg bg-card/30 backdrop-blur-sm">
-          {submissionsLoading ? <p>Loading chart...</p> :
+      <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }} className="space-y-4">
+        <h3 className="text-xl font-bold font-display px-2">Platform Velocity</h3>
+        <div className="w-full h-80 p-6 border rounded-2xl bg-card/30 backdrop-blur-sm shadow-inner">
+          {submissionsLoading ? <div className="flex items-center justify-center h-full text-muted-foreground">Plotting points...</div> :
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={submissionsOverTime || []}>
-                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
-                <XAxis dataKey="name" stroke="#888" fontSize={12} />
-                <YAxis stroke="#888" fontSize={12} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', color: '#333', border: 'none', borderRadius: '8px' }}
-                />
-                <Legend />
-                <Line type="monotone" dataKey="submissions" stroke="#4F46E5" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.05} />
+                <XAxis dataKey="name" stroke="#888" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis stroke="#888" fontSize={10} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
+                <Line type="monotone" dataKey="submissions" stroke="#4F46E5" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#4F46E5' }} />
               </LineChart>
             </ResponsiveContainer>
           }
         </div>
       </motion.div>
-    </div>);
+    </div>
+  );
 }
 export function AdminPanel() {
   const [token, setToken] = useState('');
@@ -384,11 +435,11 @@ export function AdminPanel() {
       setAdminToken(token);
       login({ id: 'admin', name: 'Admin', score: 0, solvedChallenges: [] }, true, token);
       setIsAuthenticated(true);
-      toast.success('Authentication successful!');
+      toast.success('Administrator verified');
     } else {
       setAdminToken(null);
       setIsAuthenticated(false);
-      toast.error('Invalid admin token.');
+      toast.error('Access Denied', { description: 'Invalid administrator token provided.' });
     }
   };
   if (!isAuthenticated) {
@@ -396,9 +447,9 @@ export function AdminPanel() {
       <AppLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-8 md:py-10 lg:py-12 flex flex-col min-h-[70vh]">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/')} 
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/')}
               className="self-start mb-6 group hover:bg-accent/50 transition-all duration-200 hover:scale-105"
             >
               <ChevronLeft className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
@@ -406,61 +457,68 @@ export function AdminPanel() {
             </Button>
             <div className="flex-grow flex items-center justify-center">
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="max-w-md w-full p-8 border border-border/50 rounded-2xl shadow-2xl bg-card/50 backdrop-blur-md"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="max-w-md w-full p-10 border border-border/50 rounded-3xl shadow-2xl bg-card/50 backdrop-blur-md relative overflow-hidden"
               >
-                <h1 className="text-3xl font-bold text-center mb-2 font-display">Admin Access</h1>
-                <p className="text-muted-foreground text-center mb-8">Secure portal for platform administrators.</p>
-                <form onSubmit={(e) => { e.preventDefault(); handleAuth(); }} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold">Administrator Token</Label>
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-brand-indigo via-brand-violet to-brand-orange" />
+                <h1 className="text-3xl font-black text-center mb-2 font-display">Admin Console</h1>
+                <p className="text-muted-foreground text-center mb-8 text-sm">Authentication required to manage platform assets.</p>
+                <form onSubmit={(e) => { e.preventDefault(); handleAuth(); }} className="space-y-6">
+                  <div className="space-y-3">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">X-Admin-Token</Label>
                     <Input
                       type="password"
-                      placeholder="Enter token"
+                      placeholder="••••••••••••"
                       value={token}
-                      onChange={(e) => { setToken(e.target.value); }}
-                      autoFocus={true}
-                      className="h-12 bg-background/50"
+                      onChange={(e) => setToken(e.target.value)}
+                      autoFocus
+                      className="h-12 bg-background/50 text-lg rounded-xl border-border/50 focus:ring-primary/20"
                     />
                   </div>
-                  <Button type="submit" className="w-full h-12 btn-gradient text-lg font-bold">Login to Panel</Button>
+                  <Button type="submit" className="w-full h-12 btn-gradient text-lg font-bold rounded-xl shadow-xl shadow-primary/20">
+                    Verify Identity
+                  </Button>
                 </form>
-                <Alert className="mt-8 bg-primary/5 border-primary/20">
-                  <AlertTitle className="text-primary font-bold">Demo Mode</AlertTitle>
-                  <AlertDescription className="text-xs">
-                    For this evaluation, use the token: <code className="font-mono bg-primary/10 px-1 py-0.5 rounded text-primary">{ADMIN_DEMO_TOKEN}</code>
+                <Alert className="mt-10 bg-brand-orange/10 border-brand-orange/30 rounded-2xl">
+                  <AlertTitle className="text-brand-orange font-black uppercase tracking-tighter text-xs">Evaluation Access</AlertTitle>
+                  <AlertDescription className="text-[11px] font-mono mt-1 text-brand-orange/80">
+                    Token: {ADMIN_DEMO_TOKEN}
                   </AlertDescription>
                 </Alert>
               </motion.div>
             </div>
           </div>
         </div>
-      </AppLayout>);
+      </AppLayout>
+    );
   }
   return (
     <AppLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-8 md:py-10 lg:py-12">
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
             <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                onClick={() => navigate('/')} 
-                className="group hover:bg-accent/50 transition-all duration-200 hover:scale-105"
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/')}
+                className="group hover:bg-accent/50 transition-all duration-200 rounded-xl"
               >
-                <ChevronLeft className="h-5 w-5 mr-2 transition-transform group-hover:-translate-x-1" />
-                <span className="font-bold">Back to Home</span>
+                <ChevronLeft className="h-5 w-5 mr-1 transition-transform group-hover:-translate-x-1" />
+                <span className="font-bold">Exit</span>
               </Button>
-              <h1 className="text-4xl font-bold font-display tracking-tight">Admin <span className="text-primary">Console</span></h1>
+              <div>
+                <h1 className="text-4xl font-black font-display tracking-tight leading-none">Command <span className="text-gradient">Center</span></h1>
+                <p className="text-muted-foreground text-sm mt-1 uppercase tracking-widest font-black">Platform Administration</p>
+              </div>
             </div>
           </div>
-          <Tabs defaultValue="challenges" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 h-12 p-1 bg-muted/50 rounded-xl">
-              <TabsTrigger value="challenges" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm"><ClipboardList className="w-4 h-4 mr-2" />Challenges</TabsTrigger>
-              <TabsTrigger value="users" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm"><Users className="w-4 h-4 mr-2" />Users</TabsTrigger>
-              <TabsTrigger value="submissions" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm"><Activity className="w-4 h-4 mr-2" />Submissions</TabsTrigger>
-              <TabsTrigger value="analytics" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm"><BarChart2 className="w-4 h-4 mr-2" />Analytics</TabsTrigger>
+          <Tabs defaultValue="challenges" className="space-y-8">
+            <TabsList className="grid w-full grid-cols-4 h-14 p-1.5 bg-muted/30 rounded-2xl border border-border/50 backdrop-blur-sm">
+              <TabsTrigger value="challenges" className="rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-lg font-bold"><ClipboardList className="w-4 h-4 mr-2" />Challenges</TabsTrigger>
+              <TabsTrigger value="users" className="rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-lg font-bold"><Users className="w-4 h-4 mr-2" />Users</TabsTrigger>
+              <TabsTrigger value="submissions" className="rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-lg font-bold"><Activity className="w-4 h-4 mr-2" />Activity</TabsTrigger>
+              <TabsTrigger value="analytics" className="rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-lg font-bold"><BarChart2 className="w-4 h-4 mr-2" />Insights</TabsTrigger>
             </TabsList>
             <TabsContent value="challenges" className="mt-0 outline-none"><ChallengesTab /></TabsContent>
             <TabsContent value="users" className="mt-0 outline-none"><UsersTab /></TabsContent>
@@ -469,5 +527,6 @@ export function AdminPanel() {
           </Tabs>
         </div>
       </div>
-    </AppLayout>);
+    </AppLayout>
+  );
 }

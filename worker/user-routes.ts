@@ -89,10 +89,12 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (flag.trim() !== challenge.flag) {
       return bad(c, 'Incorrect flag. Try again!');
     }
-    const { items: allSubmissions } = await SubmissionEntity.list(c.env, null, 1000);
+    // Determine First Blood status by checking all submissions for this challenge
+    const { items: allSubmissions } = await SubmissionEntity.list(c.env, null, 5000);
     const isFirstBlood = !allSubmissions.some(s => s.challengeId === challengeId);
     let pointsAwarded = challenge.points;
     if (isFirstBlood) pointsAwarded += 50;
+    // Mutate user state atomically
     await userEntity.mutate(u => ({
       ...u,
       score: u.score + pointsAwarded,
@@ -108,7 +110,10 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       isFirstBlood,
     };
     await SubmissionEntity.create(c.env, submission);
-    return ok(c, { message: `Correct flag! ${isFirstBlood ? 'First blood bonus!' : ''}`, pointsAwarded });
+    return ok(c, { 
+      message: `Correct flag! ${isFirstBlood ? 'First blood bonus!' : ''}`, 
+      pointsAwarded 
+    });
   });
   app.get('/api/scoreboard', async (c) => {
     const [{ items: users }, { items: submissions }] = await Promise.all([
@@ -128,9 +133,14 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
         lastSolveTs: lastSolve,
       };
     }).sort((a, b) => {
+      // Primary sort: Score (Descending)
       if (b.score !== a.score) return b.score - a.score;
-      if (a.lastSolveTs === 0 && b.lastSolveTs !== 0) return 1;
-      if (b.lastSolveTs === 0 && a.lastSolveTs !== 0) return -1;
+      // Secondary sort: Time of last solve (Ascending - faster is better)
+      // If someone has 0 score, they stay at bottom
+      if (a.score === 0 && b.score === 0) return a.name.localeCompare(b.name);
+      // If scores are equal and non-zero, earlier last solve wins
+      if (a.lastSolveTs === 0) return 1;
+      if (b.lastSolveTs === 0) return -1;
       return a.lastSolveTs - b.lastSolveTs;
     });
     return ok(c, scoreboard);
