@@ -123,7 +123,7 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
 };
 export function HomePage() {
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
-  const isLoggedInFromStore = useUserStore(state => state.isLoggedIn);
+  const isLoggedIn = useUserStore(state => state.isLoggedIn);
   const { data: scoreboard, isLoading } = useQuery<ScoreboardEntry[]>({
     queryKey: ['scoreboard'],
     queryFn: () => api<ScoreboardEntry[]>('/api/scoreboard'),
@@ -162,7 +162,7 @@ export function HomePage() {
                 Experience a lightning-fast CTF platform running on the global edge.
               </p>
               <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
-                {!isLoggedInFromStore ? (
+                {!isLoggedIn ? (
                   <Button
                     onClick={() => setLoginModalOpen(true)}
                     size="lg"
@@ -197,7 +197,7 @@ export function HomePage() {
         </div>
         <footer className="py-12 border-t border-border/10 text-center relative z-10">
           <p className="text-sm text-muted-foreground font-mono uppercase tracking-widest opacity-60">
-            Powered by Cloudflare Durable Objects • FlagForge Protocol v1.0
+            Powered by Cloudflare Durable Objects • Catch the Cloud Protocol v1.0
           </p>
         </footer>
       </main>
