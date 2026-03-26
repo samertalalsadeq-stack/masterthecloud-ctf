@@ -13,7 +13,6 @@ import { cn } from '@/lib/utils';
 import { api } from '@/lib/api-client';
 import type { ScoreboardEntry } from '@shared/types';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Toaster } from '@/components/ui/sonner';
 import { useUserStore } from '@/stores/userStore';
 import { LoginModal } from '@/components/LoginModal';
 const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], isLoading: boolean }) => (
@@ -111,12 +110,12 @@ export function HomePage() {
                 Edge-Powered Security
               </div>
               <h1 className="text-5xl md:text-7xl font-display font-bold text-balance leading-[1.1] mb-8">
-                Master the <span className="text-gradient">Cloud Capture</span>
+                Master the Cloud: <span className="text-gradient">Catch the Cloud</span>
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed mb-12">
-                Join our next-generation CTF platform running entirely at the edge.
-                Test your skills in Web Security, Cryptography, and Forensics through
-                interactive challenges.
+                Join our next-generation CTF platform running entirely at the edge. 
+                Test your skills in Web Security, Cryptography, and Forensics through 
+                interactive challenges on the Catch the Cloud platform.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 {!isLoggedInFromStore ? (
@@ -151,7 +150,6 @@ export function HomePage() {
             <ScoreboardCard entries={scoreboard} isLoading={isLoading} />
           </motion.div>
         </div>
-        <Toaster richColors closeButton position="top-right" />
       </main>
     </AppLayout>
   );
