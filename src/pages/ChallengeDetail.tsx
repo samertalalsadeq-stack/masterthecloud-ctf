@@ -110,9 +110,13 @@ export function ChallengeDetail() {
       <LoginModal open={isLoginModalOpen} onOpenChange={setLoginModalOpen} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-8 md:py-10 lg:py-12">
-          <Button variant="ghost" onClick={() => navigate('/challenges')} className="mb-6 group">
-            <ChevronLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
-            Back to Challenges
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/challenges')} 
+            className="mb-6 group hover:bg-accent/50 transition-all duration-200 hover:scale-105"
+          >
+            <ChevronLeft className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
+            <span className="font-bold">Back to Challenges</span>
           </Button>
           {isLoading && <ChallengeDetailSkeleton />}
           {error && (
@@ -228,7 +232,7 @@ export function ChallengeDetail() {
                   <div className="h-2 bg-gradient-to-r from-orange-500 to-indigo-600" />
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <ShieldCheck className="text-primary h-5 w-5" /> 
+                      <ShieldCheck className="text-primary h-5 w-5" />
                       Capture Flag
                     </CardTitle>
                     <CardDescription>Enter the decrypted flag to claim your points.</CardDescription>

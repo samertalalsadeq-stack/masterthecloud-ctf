@@ -4,15 +4,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { 
-  PlusCircle, 
-  Edit, 
-  Trash2, 
-  Users, 
-  ClipboardList, 
-  Loader2, 
-  BarChart2, 
-  Download, 
+import {
+  PlusCircle,
+  Edit,
+  Trash2,
+  Users,
+  ClipboardList,
+  Loader2,
+  BarChart2,
+  Download,
   ChevronLeft,
   Activity
 } from 'lucide-react';
@@ -395,35 +395,45 @@ export function AdminPanel() {
     return (
       <AppLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-8 md:py-10 lg:py-12 flex items-center justify-center min-h-[70vh]">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="max-w-md w-full p-8 border border-border/50 rounded-2xl shadow-2xl bg-card/50 backdrop-blur-md"
+          <div className="py-8 md:py-10 lg:py-12 flex flex-col min-h-[70vh]">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/')} 
+              className="self-start mb-6 group hover:bg-accent/50 transition-all duration-200 hover:scale-105"
             >
-              <h1 className="text-3xl font-bold text-center mb-2 font-display">Admin Access</h1>
-              <p className="text-muted-foreground text-center mb-8">Secure portal for platform administrators.</p>
-              <form onSubmit={(e) => { e.preventDefault(); handleAuth(); }} className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold">Administrator Token</Label>
-                  <Input
-                    type="password"
-                    placeholder="Enter token"
-                    value={token}
-                    onChange={(e) => { setToken(e.target.value); }}
-                    autoFocus={true}
-                    className="h-12 bg-background/50"
-                  />
-                </div>
-                <Button type="submit" className="w-full h-12 btn-gradient text-lg font-bold">Login to Panel</Button>
-              </form>
-              <Alert className="mt-8 bg-primary/5 border-primary/20">
-                <AlertTitle className="text-primary font-bold">Demo Mode</AlertTitle>
-                <AlertDescription className="text-xs">
-                  For this evaluation, use the token: <code className="font-mono bg-primary/10 px-1 py-0.5 rounded text-primary">{ADMIN_DEMO_TOKEN}</code>
-                </AlertDescription>
-              </Alert>
-            </motion.div>
+              <ChevronLeft className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
+              <span className="font-bold">Back to Home</span>
+            </Button>
+            <div className="flex-grow flex items-center justify-center">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="max-w-md w-full p-8 border border-border/50 rounded-2xl shadow-2xl bg-card/50 backdrop-blur-md"
+              >
+                <h1 className="text-3xl font-bold text-center mb-2 font-display">Admin Access</h1>
+                <p className="text-muted-foreground text-center mb-8">Secure portal for platform administrators.</p>
+                <form onSubmit={(e) => { e.preventDefault(); handleAuth(); }} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Administrator Token</Label>
+                    <Input
+                      type="password"
+                      placeholder="Enter token"
+                      value={token}
+                      onChange={(e) => { setToken(e.target.value); }}
+                      autoFocus={true}
+                      className="h-12 bg-background/50"
+                    />
+                  </div>
+                  <Button type="submit" className="w-full h-12 btn-gradient text-lg font-bold">Login to Panel</Button>
+                </form>
+                <Alert className="mt-8 bg-primary/5 border-primary/20">
+                  <AlertTitle className="text-primary font-bold">Demo Mode</AlertTitle>
+                  <AlertDescription className="text-xs">
+                    For this evaluation, use the token: <code className="font-mono bg-primary/10 px-1 py-0.5 rounded text-primary">{ADMIN_DEMO_TOKEN}</code>
+                  </AlertDescription>
+                </Alert>
+              </motion.div>
+            </div>
           </div>
         </div>
       </AppLayout>);
@@ -434,9 +444,13 @@ export function AdminPanel() {
         <div className="py-8 md:py-10 lg:py-12">
           <div className="flex justify-between items-center mb-8">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" onClick={() => navigate('/')} className="hover:bg-accent/50">
-                <ChevronLeft className="h-4 w-4 mr-2" />
-                Back
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate('/')} 
+                className="group hover:bg-accent/50 transition-all duration-200 hover:scale-105"
+              >
+                <ChevronLeft className="h-5 w-5 mr-2 transition-transform group-hover:-translate-x-1" />
+                <span className="font-bold">Back to Home</span>
               </Button>
               <h1 className="text-4xl font-bold font-display tracking-tight">Admin <span className="text-primary">Console</span></h1>
             </div>
