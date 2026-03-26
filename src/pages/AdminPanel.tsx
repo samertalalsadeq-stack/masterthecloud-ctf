@@ -34,6 +34,7 @@ import type { Challenge, User, ChallengeDifficulty, Submission, ScoreboardEntry 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '@/stores/userStore';
+import { cn } from '@/lib/utils';
 const ADMIN_DEMO_TOKEN = 'secret-admin-token';
 const challengeSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -76,10 +77,10 @@ function ChallengeDialog({ challenge, onOpenChange, open }: { challenge?: Challe
   }, [challenge, open, form]);
   const mutation = useMutation({
     mutationFn: (values: ChallengeFormValues) => {
-      const payload = { 
-        ...values, 
-        points: Number(values.points), 
-        tags: values.tags.split(',').map((t) => t.trim()) 
+      const payload = {
+        ...values,
+        points: Number(values.points),
+        tags: values.tags.split(',').map((t) => t.trim())
       };
       const endpoint = challenge ? `/api/admin/challenges/${challenge.id}` : '/api/admin/challenges';
       const method = challenge ? 'PUT' : 'POST';
@@ -286,7 +287,7 @@ function UsersTab() {
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", `flagforge-scoreboard-${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `master-the-cloud-scoreboard-${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -390,7 +391,7 @@ function AnalyticsTab() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={users ? [...users].sort((a, b) => b.score - a.score).slice(0, 10) : []}>
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.05} />
-                <XAxis dataKey="name" stroke="#888" fontSize={10} tickLine={false} axisLine={false} />
+                <XAxis dataKey="name" stroke="#888" fontSize={10} tickLine={false} tickFormatter={(v) => v.slice(0, 8)} axisLine={false} />
                 <YAxis stroke="#888" fontSize={10} tickLine={false} axisLine={false} />
                 <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
                 <Bar dataKey="score" fill="#F38020" radius={[4, 4, 0, 0]} />

@@ -46,7 +46,7 @@ export const useUserStore = create<UserState>()(
       },
     }),
     {
-      name: 'catch-the-cloud-storage',
+      name: 'master-the-cloud-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         userId: state.userId,
