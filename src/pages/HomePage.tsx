@@ -168,7 +168,7 @@ export function HomePage() {
                 ) : (
                   <Button asChild size="lg" className="btn-gradient min-w-[240px] h-16 text-xl font-black rounded-2xl shadow-2xl active:scale-95 transition-all">
                     <Link to="/challenges">
-                      <Shield className="mr-2 h-6 w-6" /> Explore Files
+                      <Shield className="mr-2 h-6 w-6" /> Explore Challenges
                     </Link>
                   </Button>
                 )}
