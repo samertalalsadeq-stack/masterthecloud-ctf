@@ -41,7 +41,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] bg-white text-gray-900 dark:bg-white dark:text-gray-900 border-gray-200 shadow-2xl p-8 rounded-2xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-gray-900 text-center font-display">Join FlagForge</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-gray-900 text-center font-display">Join Catch the Cloud</DialogTitle>
           <DialogDescription className="text-gray-600 text-center text-sm pt-2">
             Create a display name to track your progress and climb the live scoreboard.
           </DialogDescription>
