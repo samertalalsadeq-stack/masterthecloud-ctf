@@ -4,31 +4,44 @@ let adminToken: string | null = null;
 export function setAdminToken(token: string | null) {
   adminToken = token;
 }
+/**
+ * Enhanced API fetcher with detailed error diagnostics and safe URL construction.
+ */
 export async function api<T>(path: string, init?: RequestInit & { params?: Record<string, any> }): Promise<T> {
   const headers = new Headers(init?.headers);
   headers.set('Content-Type', 'application/json');
+  // Attach admin token if targeting admin endpoints
   if (adminToken && path.startsWith('/api/admin')) {
     headers.set('x-admin-token', adminToken);
   }
-  let fullPath = path;
-  if (init?.params) {
-    const url = new URL(path, window.location.origin);
-    Object.entries(init.params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        url.searchParams.set(key, String(value));
-      }
-    });
-    fullPath = `${url.pathname}${url.search}`;
+  // Construct final URL with query parameters
+  let urlObj: URL;
+  try {
+    // Ensure absolute URL construction
+    urlObj = new URL(path, window.location.origin);
+    if (init?.params) {
+      Object.entries(init.params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          urlObj.searchParams.set(key, String(value));
+        }
+      });
+    }
+  } catch (err) {
+    console.error(`[API URL Error] Invalid path: ${path}`, err);
+    throw new Error(`Invalid request URL: ${path}`);
   }
   const finalInit = { ...init };
   delete finalInit.params;
   try {
-    const res = await fetch(fullPath, { ...finalInit, headers });
+    const res = await fetch(urlObj.toString(), { ...finalInit, headers });
+    // Handle session expiration or unauthorized access
     if (res.status === 401) {
+      console.warn(`[API 401] Unauthorized: ${path}`);
       setAdminToken(null);
+      // Directly call store action if possible, or trigger global event
       useUserStore.getState().logout();
       if (path.startsWith('/api/admin')) {
-        throw new Error('Unauthorized admin access. Please log in again.');
+        throw new Error('Administrative session expired. Please verify your token.');
       }
     }
     const text = await res.text();
@@ -36,15 +49,19 @@ export async function api<T>(path: string, init?: RequestInit & { params?: Recor
     try {
       json = JSON.parse(text) as ApiResponse<T>;
     } catch (e) {
-      // Fallback for non-JSON responses (e.g., 500 error pages)
-      throw new Error(text || `Server returned status ${res.status}`);
+      console.error(`[API Parse Error] ${path}: Non-JSON response`, text.slice(0, 200));
+      throw new Error(`Cloud Protocol Error: ${res.status} ${res.statusText}`);
     }
     if (!res.ok || !json.success || json.data === undefined) {
-      throw new Error(json.error || 'Request failed');
+      const errorMsg = json.error || `Request failed with status ${res.status}`;
+      console.error(`[API Logic Error] ${path}:`, errorMsg);
+      throw new Error(errorMsg);
     }
     return json.data;
   } catch (error) {
-    console.error(`[API Error] ${path}:`, error instanceof Error ? error.message : error);
+    // Log as a critical fetch failure (likely network or worker crash)
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`[API Critical Failure] ${path}: ${message}`);
     throw error;
   }
 }
