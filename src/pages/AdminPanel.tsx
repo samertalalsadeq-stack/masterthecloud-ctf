@@ -281,8 +281,8 @@ function UsersTab() {
       toast.error("No scoreboard data to export.");
       return;
     }
-    const headers = "userId,name,score,solvedCount,lastSolveTs\n";
-    const csv = scoreboard.map((row) => `${row.userId},${row.name},${row.score},${row.solvedCount},${row.lastSolveTs}`).join("\n");
+    const headers = "UserId,Name,Score,SolvedCount,LastSolveTimestamp\n";
+    const csv = scoreboard.map((row) => `"${row.userId}","${row.name.replace(/"/g, '""')}",${row.score},${row.solvedCount},${row.lastSolveTs}`).join("\n");
     const blob = new Blob([headers + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
