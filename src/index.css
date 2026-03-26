@@ -1,21 +1,12 @@
-/* Global CSS for the application
-   - Tailwind base/components/utilities are included below
-   - Fixed the invalid 'text-wrap: pretty' property by replacing it with
-     'white-space: normal; word-break: break-word;'
-   - Preserve other declarations and keep global resets for consistency
-*/
-/* Tailwind layers */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* Global CSS variables (keep these here if used by the app) */
 :root {
   --bg: 255 255 255;
   --muted: 100 116 139;
   --brand: 99 102 241;
   --radius: 0.5rem;
 }
-/* Global resets and base styles */
 *,
 *::before,
 *::after {
@@ -25,8 +16,8 @@ html, body, #root {
   height: 100%;
 }
 html {
-  line-height: 1.15; /* 1 */
-  -webkit-text-size-adjust: 100%; /* 2 */
+  line-height: 1.15;
+  -webkit-text-size-adjust: 100%;
 }
 body {
   margin: 0;
@@ -39,30 +30,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
 }
-/* Headings */
 h1, h2, h3, h4, h5, h6 {
   margin: 0;
   font-weight: 700;
 }
-/* Links */
 a {
   color: inherit;
   text-decoration: none;
 }
-/* Images */
 img {
   max-width: 100%;
   display: block;
 }
-/* Utility class previously contained an invalid property:
-   .text-pretty { text-wrap: pretty; }
-   Replaced with valid CSS to preserve intended behavior (wrap long text nicely).
-*/
 .text-pretty {
   white-space: normal;
   word-break: break-word;
 }
-/* Minor helpers */
 .container {
   max-width: 100%;
   padding-left: 1rem;
@@ -70,12 +53,10 @@ img {
   margin-left: auto;
   margin-right: auto;
 }
-/* Accessible focus styles */
 :focus {
   outline: 2px solid rgba(99, 102, 241, 0.6);
   outline-offset: 2px;
 }
-/* Misc global utilities that are safe to keep */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -86,4 +67,27 @@ img {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+/* 
+  High-Visibility Modal Overrides 
+  Ensures Dialogs and Alert Dialogs stay white with dark text 
+  regardless of the application's global theme (Light/Dark).
+*/
+[role="dialog"] {
+  background-color: #ffffff !important;
+  color: #111827 !important; /* text-gray-900 */
+}
+[role="dialog"] h2, 
+[role="dialog"] h3,
+[role="dialog"] p,
+[role="dialog"] label,
+[role="dialog"] span:not([class*="text-"]) {
+  color: #111827 !important;
+}
+[role="dialog"] .text-muted-foreground {
+  color: #4b5563 !important; /* text-gray-600 */
+}
+/* Target Radix/Shadcn specifics specifically for background */
+div[data-state="open"] > div[class*="fixed"][class*="bg-background"] {
+  background-color: #ffffff !important;
 }
