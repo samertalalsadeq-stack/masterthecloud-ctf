@@ -83,30 +83,30 @@ function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: Challen
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] bg-white text-gray-900 dark:bg-white dark:text-gray-900 border-gray-200">
         <DialogHeader>
-          <DialogTitle>{challenge ? 'Edit' : 'Create'} Challenge</DialogTitle>
-          <DialogDescription className="bg-white p-3 rounded-md text-gray-900 dark:bg-white dark:text-gray-900 text-sm">
+          <DialogTitle className="text-gray-900">{challenge ? 'Edit' : 'Create'} Challenge</DialogTitle>
+          <DialogDescription className="text-gray-600">
             Fill in the details for the challenge. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[70vh] overflow-y-auto pr-4">
             <FormField control={form.control} name="title" render={({ field }) =>
-            <FormItem><FormLabel className="text-sm font-bold text-gray-900 bg-white dark:text-gray-900 dark:bg-white">Title</FormLabel><FormControl><Input className="bg-white border-gray-300 focus:border-primary/90 focus:ring-primary/50 focus:ring-2 text-gray-900 dark:bg-white dark:border-gray-300 dark:text-gray-900" {...field} /></FormControl><FormMessage /></FormItem>
+              <FormItem><FormLabel className="font-bold text-gray-900">Title</FormLabel><FormControl><Input className="bg-white border-gray-300 text-gray-900 focus:ring-primary/50" {...field} /></FormControl><FormMessage /></FormItem>
             } />
             <FormField control={form.control} name="description" render={({ field }) =>
-            <FormItem><FormLabel className="text-sm font-bold text-gray-900 bg-white dark:text-gray-900 dark:bg-white">Description</FormLabel><FormControl><Textarea className="bg-white border-gray-300 focus:border-primary/90 focus:ring-primary/50 focus:ring-2 text-gray-900 dark:bg-white dark:border-gray-300 dark:text-gray-900" {...field} /></FormControl><FormMessage /></FormItem>
+              <FormItem><FormLabel className="font-bold text-gray-900">Description</FormLabel><FormControl><Textarea className="bg-white border-gray-300 text-gray-900 focus:ring-primary/50" {...field} /></FormControl><FormMessage /></FormItem>
             } />
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="points" render={({ field }) =>
-              <FormItem><FormLabel className="text-sm font-bold text-gray-900 bg-white dark:text-gray-900 dark:bg-white">Points</FormLabel><FormControl><Input type="number" min="1" placeholder="100" className="bg-white border-gray-300 focus:border-primary/90 focus:ring-primary/50 focus:ring-2 text-gray-900 dark:bg-white dark:border-gray-300 dark:text-gray-900" {...field} onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel className="font-bold text-gray-900">Points</FormLabel><FormControl><Input type="number" className="bg-white border-gray-300 text-gray-900 focus:ring-primary/50" {...field} onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl><FormMessage /></FormItem>
               } />
               <FormField control={form.control} name="difficulty" render={({ field }) =>
-              <FormItem><FormLabel className="text-sm font-bold text-gray-900 bg-white dark:text-gray-900 dark:bg-white">Difficulty</FormLabel>
+                <FormItem><FormLabel className="font-bold text-gray-900">Difficulty</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl><SelectTrigger className="bg-white border-gray-300 focus:border-primary/90 focus:ring-primary/50 focus:ring-2 text-gray-900 dark:bg-white dark:border-gray-300 dark:text-gray-900"><SelectValue /></SelectTrigger></FormControl>
-                    <SelectContent>
+                    <FormControl><SelectTrigger className="bg-white border-gray-300 text-gray-900 focus:ring-primary/50"><SelectValue /></SelectTrigger></FormControl>
+                    <SelectContent className="bg-white">
                       {(['Easy', 'Medium', 'Hard', 'Insane'] as ChallengeDifficulty[]).map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                     </SelectContent>
                   </Select><FormMessage />
@@ -114,17 +114,17 @@ function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: Challen
               } />
             </div>
             <FormField control={form.control} name="tags" render={({ field }) =>
-            <FormItem><FormLabel className="text-sm font-bold text-gray-900 bg-white dark:text-gray-900 dark:bg-white">Tags (comma-separated)</FormLabel><FormControl><Input placeholder="e.g., web, crypto, forensics" className="bg-white border-gray-300 focus:border-primary/90 focus:ring-primary/50 focus:ring-2 text-gray-900 dark:bg-white dark:border-gray-300 dark:text-gray-900" {...field} /></FormControl><FormMessage /></FormItem>
+              <FormItem><FormLabel className="font-bold text-gray-900">Tags (comma-separated)</FormLabel><FormControl><Input className="bg-white border-gray-300 text-gray-900 focus:ring-primary/50" {...field} /></FormControl><FormMessage /></FormItem>
             } />
             <FormField control={form.control} name="flag" render={({ field }) =>
-            <FormItem><FormLabel className="text-sm font-bold text-gray-900 bg-white dark:text-gray-900 dark:bg-white">Flag</FormLabel><FormControl><Input className="bg-white border-gray-300 focus:border-primary/90 focus:ring-primary/50 focus:ring-2 text-gray-900 dark:bg-white dark:border-gray-300 dark:text-gray-900" {...field} /></FormControl><FormMessage /></FormItem>
+              <FormItem><FormLabel className="font-bold text-gray-900">Flag</FormLabel><FormControl><Input className="bg-white border-gray-300 text-gray-900 focus:ring-primary/50" {...field} /></FormControl><FormMessage /></FormItem>
             } />
             <FormField control={form.control} name="hint" render={({ field }) =>
-            <FormItem><FormLabel className="text-sm font-bold text-gray-900 bg-white dark:text-gray-900 dark:bg-white">Hint (Optional)</FormLabel><FormControl><Textarea placeholder="Optional hint for solvers" className="bg-white border-gray-300 focus:border-primary/90 focus:ring-primary/50 focus:ring-2 text-gray-900 dark:bg-white dark:border-gray-300 dark:text-gray-900" {...field} /></FormControl><FormMessage /></FormItem>
+              <FormItem><FormLabel className="font-bold text-gray-900">Hint (Optional)</FormLabel><FormControl><Textarea className="bg-white border-gray-300 text-gray-900 focus:ring-primary/50" {...field} /></FormControl><FormMessage /></FormItem>
             } />
-            <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="bg-white text-gray-900 border border-gray-300 hover:bg-gray-50 hover:text-gray-900 focus:ring-2 focus:ring-primary/50 focus:border-primary/90 dark:bg-white dark:text-gray-900 dark:border-gray-300 dark:hover:bg-gray-50">Cancel</Button>
-              <Button type="submit" disabled={mutation.isPending} className="bg-white text-gray-900 border border-gray-300 hover:bg-gray-50 hover:text-gray-900 focus:ring-2 focus:ring-primary/50 focus:border-primary/90 dark:bg-white dark:text-gray-900 dark:border-gray-300 dark:hover:bg-gray-50">
+            <DialogFooter className="pt-4">
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="text-gray-900 hover:bg-gray-100 border border-transparent">Cancel</Button>
+              <Button type="submit" disabled={mutation.isPending} className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-8">
                 {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Challenge
               </Button>
@@ -166,7 +166,7 @@ function ChallengesTab() {
       <div className="flex justify-end mb-4">
         <Button onClick={handleAdd}><PlusCircle className="w-4 h-4 mr-2" /> Add Challenge</Button>
       </div>
-      <div className="border rounded-lg">
+      <div className="border rounded-lg bg-card/50">
         <Table>
           <TableHeader>
             <TableRow>
@@ -176,18 +176,25 @@ function ChallengesTab() {
           <TableBody>
             {isLoading && <TableRow><TableCell colSpan={5} className="text-center">Loading...</TableCell></TableRow>}
             {challenges?.map((c) =>
-            <TableRow key={c.id}>
-                <TableCell>{c.title}</TableCell><TableCell>{c.points}</TableCell><TableCell>{c.difficulty}</TableCell>
-                <TableCell><code className="font-mono text-sm">{c.flag}</code></TableCell>
+              <TableRow key={c.id}>
+                <TableCell className="font-medium">{c.title}</TableCell><TableCell>{c.points}</TableCell><TableCell>{c.difficulty}</TableCell>
+                <TableCell><code className="font-mono text-xs bg-muted p-1 rounded">{c.flag}</code></TableCell>
                 <TableCell className="space-x-2">
                   <Button variant="outline" size="icon" onClick={() => handleEdit(c)}><Edit className="w-4 h-4" /></Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild><Button variant="destructive" size="icon"><Trash2 className="w-4 h-4" /></Button></AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone. This will permanently delete the challenge.</AlertDialogDescription></AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => deleteMutation.mutate(c.id)}>Delete</AlertDialogAction>
+                    <AlertDialogContent className="bg-white text-gray-900 dark:bg-white dark:text-gray-900 border-gray-200">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="text-gray-900 text-xl font-bold">Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-gray-600">
+                          This action cannot be undone. This will permanently delete the <strong>{c.title}</strong> challenge and remove it from our servers.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter className="pt-4">
+                        <AlertDialogCancel className="bg-white text-gray-900 border-gray-300 hover:bg-gray-100">Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => deleteMutation.mutate(c.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold">
+                          Delete Challenge
+                        </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
@@ -231,7 +238,7 @@ function UsersTab() {
       <div className="flex justify-end mb-4">
         <Button onClick={handleExport} variant="outline"><Download className="w-4 h-4 mr-2" /> Export CSV</Button>
       </div>
-      <div className="border rounded-lg">
+      <div className="border rounded-lg bg-card/50">
         <Table>
           <TableHeader>
             <TableRow>
@@ -241,9 +248,9 @@ function UsersTab() {
           <TableBody>
             {isLoading && <TableRow><TableCell colSpan={4} className="text-center">Loading...</TableCell></TableRow>}
             {users?.map((u) =>
-            <TableRow key={u.id}>
-                <TableCell><code className="font-mono text-sm">{u.id}</code></TableCell>
-                <TableCell>{u.name}</TableCell><TableCell>{u.score}</TableCell><TableCell>{u.solvedChallenges.length}</TableCell>
+              <TableRow key={u.id}>
+                <TableCell><code className="font-mono text-xs">{u.id.slice(0, 8)}</code></TableCell>
+                <TableCell className="font-medium">{u.name}</TableCell><TableCell className="font-bold text-primary">{u.score}</TableCell><TableCell>{u.solvedChallenges.length}</TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -258,7 +265,7 @@ function SubmissionsTab() {
   });
   return (
     <div>
-      <div className="border rounded-lg">
+      <div className="border rounded-lg bg-card/50">
         <Table>
           <TableHeader>
             <TableRow>
@@ -277,11 +284,11 @@ function SubmissionsTab() {
             ) : (
               submissions?.map(s => (
                 <TableRow key={s.id}>
-                  <TableCell><code className="font-mono text-sm">{s.id.slice(0, 8)}...</code></TableCell>
-                  <TableCell><code className="font-mono text-sm">{s.challengeId.slice(0, 8)}...</code></TableCell>
-                  <TableCell>{s.userName}</TableCell>
-                  <TableCell>{s.pointsAwarded}</TableCell>
-                  <TableCell>{new Date(s.ts).toLocaleString()}</TableCell>
+                  <TableCell><code className="font-mono text-xs">{s.id.slice(0, 8)}</code></TableCell>
+                  <TableCell><code className="font-mono text-xs">{s.challengeId.slice(0, 8)}</code></TableCell>
+                  <TableCell className="font-medium">{s.userName}</TableCell>
+                  <TableCell className="font-bold text-primary">+{s.pointsAwarded}</TableCell>
+                  <TableCell className="text-muted-foreground">{new Date(s.ts).toLocaleString()}</TableCell>
                 </TableRow>
               ))
             )}
@@ -310,16 +317,18 @@ function AnalyticsTab() {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <h3 className="text-xl font-semibold mb-4">User Scores</h3>
-        <div className="w-full h-80 p-4 border rounded-lg">
+        <div className="w-full h-80 p-4 border rounded-lg bg-card/30 backdrop-blur-sm">
           {usersLoading ? <p>Loading chart...</p> :
-          <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={users ? [...users].sort((a, b) => b.score - a.score) : []}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                <XAxis dataKey="name" stroke="#888" fontSize={12} />
+                <YAxis stroke="#888" fontSize={12} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', color: '#333', border: 'none', borderRadius: '8px' }}
+                />
                 <Legend />
-                <Bar dataKey="score" fill="hsl(var(--primary))" />
+                <Bar dataKey="score" fill="#F38020" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           }
@@ -327,16 +336,18 @@ function AnalyticsTab() {
       </motion.div>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
         <h3 className="text-xl font-semibold mb-4">Submissions Over Time</h3>
-        <div className="w-full h-80 p-4 border rounded-lg">
+        <div className="w-full h-80 p-4 border rounded-lg bg-card/30 backdrop-blur-sm">
           {submissionsLoading ? <p>Loading chart...</p> :
-          <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart data={submissionsOverTime || []}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                <XAxis dataKey="name" stroke="#888" fontSize={12} />
+                <YAxis stroke="#888" fontSize={12} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', color: '#333', border: 'none', borderRadius: '8px' }}
+                />
                 <Legend />
-                <Line type="monotone" dataKey="submissions" stroke="hsl(var(--primary))" />
+                <Line type="monotone" dataKey="submissions" stroke="#4F46E5" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
               </LineChart>
             </ResponsiveContainer>
           }
@@ -359,7 +370,6 @@ export function AdminPanel() {
   const handleAuth = () => {
     if (token.trim() === ADMIN_DEMO_TOKEN.trim()) {
       setAdminToken(token);
-      // Mock login as admin to store the token
       login({ id: 'admin', name: 'Admin', score: 0, solvedChallenges: [] }, true, token);
       setIsAuthenticated(true);
       toast.success('Authentication successful!');
@@ -373,28 +383,35 @@ export function AdminPanel() {
     return (
       <AppLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-8 md:py-10 lg:py-12">
-            <div className="max-w-md mx-auto mt-20 p-8 border rounded-lg shadow-lg bg-card">
-              <h1 className="text-2xl font-bold text-center mb-4">Admin Authentication</h1>
-              <p className="text-muted-foreground text-center mb-6">Enter the admin token to access the panel.</p>
-              <form onSubmit={(e) => { e.preventDefault(); handleAuth(); }} className="flex flex-col sm:flex-row gap-4">
-                <Input
-                  type="password"
-                  placeholder="Admin Token"
-                  value={token}
-                  onChange={(e) => { setToken(e.target.value); }}
-                  autoFocus={true}
-                  className="w-full"
-                />
-                <Button type="submit">Login</Button>
+          <div className="py-8 md:py-10 lg:py-12 flex items-center justify-center min-h-[70vh]">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="max-w-md w-full p-8 border border-border/50 rounded-2xl shadow-2xl bg-card/50 backdrop-blur-md"
+            >
+              <h1 className="text-3xl font-bold text-center mb-2 font-display">Admin Access</h1>
+              <p className="text-muted-foreground text-center mb-8">Secure portal for platform administrators.</p>
+              <form onSubmit={(e) => { e.preventDefault(); handleAuth(); }} className="space-y-4">
+                <div className="space-y-2">
+                  <FormLabel className="text-sm font-semibold">Administrator Token</FormLabel>
+                  <Input
+                    type="password"
+                    placeholder="Enter token"
+                    value={token}
+                    onChange={(e) => { setToken(e.target.value); }}
+                    autoFocus={true}
+                    className="h-12 bg-background/50"
+                  />
+                </div>
+                <Button type="submit" className="w-full h-12 btn-gradient text-lg font-bold">Login to Panel</Button>
               </form>
-              <Alert className="mt-4">
-                <AlertTitle>Demo Information</AlertTitle>
-                <AlertDescription>
-                  For this demo, use the token: <code className="font-mono bg-muted px-1 py-0.5 rounded">{ADMIN_DEMO_TOKEN}</code>
+              <Alert className="mt-8 bg-primary/5 border-primary/20">
+                <AlertTitle className="text-primary font-bold">Demo Mode</AlertTitle>
+                <AlertDescription className="text-xs">
+                  For this evaluation, use the token: <code className="font-mono bg-primary/10 px-1 py-0.5 rounded text-primary">{ADMIN_DEMO_TOKEN}</code>
                 </AlertDescription>
               </Alert>
-            </div>
+            </motion.div>
           </div>
         </div>
       </AppLayout>);
@@ -407,22 +424,22 @@ export function AdminPanel() {
             <div className="flex items-center gap-4">
               <Button variant="ghost" onClick={() => navigate('/')}>
                 <ChevronLeft className="h-4 w-4 mr-2" />
-                Back to Home
+                Back
               </Button>
-              <h1 className="text-3xl font-bold font-display">Admin Panel</h1>
+              <h1 className="text-4xl font-bold font-display tracking-tight">Admin <span className="text-primary">Console</span></h1>
             </div>
           </div>
-          <Tabs defaultValue="challenges">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="challenges"><ClipboardList className="w-4 h-4 mr-2" />Challenges</TabsTrigger>
-              <TabsTrigger value="users"><Users className="w-4 h-4 mr-2" />Users</TabsTrigger>
-              <TabsTrigger value="submissions">Submissions</TabsTrigger>
-              <TabsTrigger value="analytics"><BarChart2 className="w-4 h-4 mr-2" />Analytics</TabsTrigger>
+          <Tabs defaultValue="challenges" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4 h-12 p-1 bg-muted/50 rounded-xl">
+              <TabsTrigger value="challenges" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm"><ClipboardList className="w-4 h-4 mr-2" />Challenges</TabsTrigger>
+              <TabsTrigger value="users" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm"><Users className="w-4 h-4 mr-2" />Users</TabsTrigger>
+              <TabsTrigger value="submissions" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">Submissions</TabsTrigger>
+              <TabsTrigger value="analytics" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm"><BarChart2 className="w-4 h-4 mr-2" />Analytics</TabsTrigger>
             </TabsList>
-            <TabsContent value="challenges" className="mt-4"><ChallengesTab /></TabsContent>
-            <TabsContent value="users" className="mt-4"><UsersTab /></TabsContent>
-            <TabsContent value="submissions" className="mt-4"><SubmissionsTab /></TabsContent>
-            <TabsContent value="analytics" className="mt-4"><AnalyticsTab /></TabsContent>
+            <TabsContent value="challenges" className="mt-0 outline-none"><ChallengesTab /></TabsContent>
+            <TabsContent value="users" className="mt-0 outline-none"><UsersTab /></TabsContent>
+            <TabsContent value="submissions" className="mt-0 outline-none"><SubmissionsTab /></TabsContent>
+            <TabsContent value="analytics" className="mt-0 outline-none"><AnalyticsTab /></TabsContent>
           </Tabs>
         </div>
       </div>

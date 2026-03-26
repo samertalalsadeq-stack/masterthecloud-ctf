@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -39,39 +39,39 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] bg-white text-gray-900 dark:bg-white dark:text-gray-900 border-none shadow-2xl p-6">
+      <DialogContent className="sm:max-w-[425px] bg-white text-gray-900 dark:bg-white dark:text-gray-900 border-gray-200 shadow-2xl p-8 rounded-2xl">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-gray-900">Join the Challenge</DialogTitle>
-          <DialogDescription className="bg-white p-3 rounded-md text-gray-900 dark:bg-white dark:text-gray-900 text-sm mt-2">
-            Choose a display name to start solving challenges and appear on the scoreboard.
+          <DialogTitle className="text-2xl font-bold text-gray-900 text-center font-display">Join FlagForge</DialogTitle>
+          <DialogDescription className="text-gray-600 text-center text-sm pt-2">
+            Create a display name to track your progress and climb the live scoreboard.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="space-y-2">
-            <Label 
-              htmlFor="name" 
-              className="text-sm font-bold text-gray-900 bg-white dark:text-gray-900 dark:bg-white"
+        <div className="grid gap-6 py-6">
+          <div className="space-y-3">
+            <Label
+              htmlFor="name"
+              className="text-sm font-bold text-gray-900"
             >
-              Display Name
+              Public Display Name
             </Label>
             <Input
               id="name"
-              placeholder="Your display name"
+              placeholder="e.g., CyberGhost"
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-              className="bg-white border-gray-300 focus:border-primary/90 focus:ring-primary/50 focus:ring-2 text-gray-900 dark:bg-white dark:border-gray-300 dark:text-gray-900 h-11"
+              className="bg-white border-gray-300 text-gray-900 h-12 focus:ring-primary/50 text-lg rounded-xl"
             />
           </div>
         </div>
-        <DialogFooter className="pt-2">
-          <Button 
-            type="submit" 
-            onClick={handleLogin} 
+        <DialogFooter>
+          <Button
+            type="submit"
+            onClick={handleLogin}
             disabled={isLoading}
-            className="w-full bg-white text-gray-900 border border-gray-300 hover:bg-gray-50 hover:text-gray-900 focus:ring-2 focus:ring-primary/50 focus:border-primary/90 dark:bg-white dark:text-gray-900 dark:border-gray-300 dark:hover:bg-gray-50 font-bold h-11 transition-all"
+            className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-lg rounded-xl transition-all shadow-lg shadow-primary/20"
           >
-            {isLoading ? 'Joining...' : 'Join FlagForge'}
+            {isLoading ? 'Processing...' : 'Start Solving Now'}
           </Button>
         </DialogFooter>
       </DialogContent>
