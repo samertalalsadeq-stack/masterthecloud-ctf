@@ -15,6 +15,7 @@ import type { ScoreboardEntry } from '@shared/types';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useUserStore } from '@/stores/userStore';
 import { LoginModal } from '@/components/LoginModal';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], isLoading: boolean }) => {
   const latestSolveUser = useMemo(() => {
     if (!entries?.length) return null;
@@ -22,11 +23,11 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
     return sorted[0] || null;
   }, [entries]);
   return (
-    <Card className="w-full max-w-2xl bg-card/50 backdrop-blur-sm border-border/50 shadow-2xl rounded-2xl overflow-hidden">
+    <Card className="w-full max-w-2xl bg-card/50 backdrop-blur-md border-border/50 shadow-2xl rounded-2xl overflow-hidden group">
       <CardHeader className="border-b border-border/10 bg-muted/20">
         <CardTitle className="flex items-center justify-between text-2xl font-display">
           <div className="flex items-center gap-2">
-            <Trophy className="text-yellow-500 w-6 h-6" />
+            <Trophy className="text-yellow-500 w-6 h-6 group-hover:rotate-12 transition-transform" />
             Live Rankings
           </div>
           <div className="flex items-center gap-2">
@@ -41,20 +42,20 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
       <CardContent className="pt-6">
         {latestSolveUser && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-3 rounded-xl bg-primary/5 border border-primary/10 flex items-center gap-3"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-6 p-3 rounded-xl bg-brand-indigo/5 border border-brand-indigo/10 flex items-center gap-3"
           >
-            <Zap className="h-4 w-4 text-primary animate-pulse" />
+            <Zap className="h-4 w-4 text-brand-indigo animate-pulse" />
             <span className="text-sm font-medium">
-              <span className="text-primary font-bold">{latestSolveUser.name}</span> just captured a flag!
+              <span className="text-brand-indigo font-bold">{latestSolveUser.name}</span> just captured a flag!
             </span>
             <span className="text-[10px] text-muted-foreground ml-auto">
               {formatDistanceToNow(new Date(latestSolveUser.lastSolveTs), { addSuffix: true })}
             </span>
           </motion.div>
         )}
-        <div className="space-y-3">
+        <div className="space-y-2">
           {isLoading ? (
             Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="flex items-center gap-4 p-2">
@@ -94,14 +95,14 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
                   <p className="font-bold text-foreground group-hover:text-primary transition-colors">{entry.name}</p>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-bold">
-                      {entry.solvedCount} SOLVES
+                      {entry.solvedCount} {entry.solvedCount === 1 ? 'CAPTURE' : 'CAPTURES'}
                     </span>
                     <span className="text-[10px] text-muted-foreground italic">
                       {entry.lastSolveTs ? formatDistanceToNow(new Date(entry.lastSolveTs), { addSuffix: true }) : 'Ghosting...'}
                     </span>
                   </div>
                 </div>
-                <div className="font-black text-lg text-primary tabular-nums group-hover:scale-105 transition-transform">{entry.score}</div>
+                <div className="font-black text-xl text-primary tabular-nums group-hover:scale-105 transition-transform">{entry.score}</div>
               </motion.div>
             ))
           ) : (
@@ -114,7 +115,7 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
               <p className="text-muted-foreground text-sm max-w-xs mx-auto mb-6">
                 Nobody has conquered a challenge yet. Be the first to strike and claim your spot on the leaderboard.
               </p>
-              <Button asChild variant="secondary" className="rounded-xl">
+              <Button asChild variant="secondary" className="rounded-xl font-bold">
                 <Link to="/challenges">Take the First Step</Link>
               </Button>
             </div>
@@ -127,10 +128,11 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
 export function HomePage() {
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
   const isLoggedIn = useUserStore(state => state.isLoggedIn);
-  const { data: scoreboard, isLoading } = useQuery<ScoreboardEntry[]>({
+  const { data: scoreboard, isLoading, isError } = useQuery<ScoreboardEntry[]>({
     queryKey: ['scoreboard'],
     queryFn: () => api<ScoreboardEntry[]>('/api/scoreboard'),
     refetchInterval: 15000,
+    retry: 2,
   });
   return (
     <AppLayout>
@@ -138,7 +140,7 @@ export function HomePage() {
       <main className="relative min-h-[calc(100vh-4rem)] overflow-hidden flex flex-col">
         <div className="absolute inset-0 bg-gradient-mesh opacity-[0.05] dark:opacity-[0.1] pointer-events-none" />
         <ThemeToggle />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-grow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-grow relative z-10">
           <div className="py-20 md:py-28 lg:py-40 text-center relative">
             <motion.div
               initial={{ opacity: 0, y: -20 }}
@@ -147,13 +149,13 @@ export function HomePage() {
             >
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-indigo/10 border border-brand-indigo/20 text-brand-indigo text-xs font-black uppercase tracking-[0.2em] mb-8 shadow-sm">
                 <Cloud className="h-4 w-4" />
-                Edge-Powered Security
+                Edge-Powered Security Protocol
               </div>
               <h1 className="text-6xl md:text-8xl font-display font-black text-balance leading-none mb-10 tracking-tight">
                 Master the <span className="text-gradient">Cloud</span>
               </h1>
               <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed mb-16 font-medium">
-                The ultimate capture-the-flag proving ground.
+                The ultimate capture-the-flag proving ground. 
                 Experience a lightning-fast CTF platform running on the global edge.
               </p>
               <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
@@ -174,7 +176,7 @@ export function HomePage() {
                 )}
                 <Button asChild size="lg" variant="outline" className="min-w-[240px] h-16 text-xl font-black rounded-2xl backdrop-blur-md border-border/50 hover:bg-accent/10 active:scale-95 transition-all">
                   <Link to="/admin">
-                    <UserCheck className="mr-2 h-6 w-6" /> Administrator
+                    <UserCheck className="mr-2 h-6 w-6" /> Admin Console
                   </Link>
                 </Button>
               </div>
@@ -187,12 +189,21 @@ export function HomePage() {
             transition={{ duration: 1, delay: 0.2 }}
             className="flex justify-center pb-32"
           >
-            <ScoreboardCard entries={scoreboard} isLoading={isLoading} />
+            <ErrorBoundary>
+              {isError ? (
+                <Card className="w-full max-w-2xl bg-destructive/5 border-destructive/20 p-8 text-center rounded-2xl">
+                  <h3 className="text-lg font-bold text-destructive mb-2">Rankings Offline</h3>
+                  <p className="text-muted-foreground text-sm">We're having trouble reaching the command center. Please refresh the page.</p>
+                </Card>
+              ) : (
+                <ScoreboardCard entries={scoreboard} isLoading={isLoading} />
+              )}
+            </ErrorBoundary>
           </motion.div>
         </div>
-        <footer className="py-12 border-t border-border/10 text-center relative z-10">
+        <footer className="py-12 border-t border-border/10 text-center relative z-10 bg-background/50 backdrop-blur-sm">
           <p className="text-sm text-muted-foreground font-mono uppercase tracking-widest opacity-60">
-            Powered by Cloudflare Durable Objects • Master the Cloud Protocol v1.0
+            Powered by Cloudflare Durable Objects • Master the Cloud Protocol v1.0.42
           </p>
         </footer>
       </main>
