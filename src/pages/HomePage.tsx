@@ -8,9 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { api } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
-import type { ScoreboardEntry } from '@shared/types';
+import type { ScoreboardEntry, ApiResponse } from '@shared/types';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Toaster } from '@/components/ui/sonner';
 import { useUserStore } from '@/stores/userStore';
@@ -97,14 +96,14 @@ export function HomePage() {
     const fetchScoreboard = async () => {
       setIsLoading(true);
       try {
-        const res = await api('/api/scoreboard');
+        const res: Response = await fetch('/api/scoreboard');
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }
-        const data: ScoreboardEntry[] = await (res.json() as Promise<ScoreboardEntry[]>);
-        setScoreboard(data);
+        const response: ApiResponse<ScoreboardEntry[]> = await res.json();
+        setScoreboard(response.data || []);
       } catch (err) {
-        console.error('Scoreboard fetch error:', err);
+        console.error('Scoreboard fetch error:', err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setIsLoading(false);
       }

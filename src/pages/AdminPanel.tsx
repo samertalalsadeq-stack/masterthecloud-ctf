@@ -60,7 +60,7 @@ function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: Challen
         });
       }
     }
-  }, [challenge, open, form.reset]);
+  }, [challenge, open, form.reset]); // eslint-disable-next-line react-hooks/exhaustive-deps
   const mutation = useMutation({
     mutationFn: (values: ChallengeFormValues) => {
       const payload = { ...values, points: Number(values.points), tags: values.tags.split(',').map((t) => t.trim()) };
