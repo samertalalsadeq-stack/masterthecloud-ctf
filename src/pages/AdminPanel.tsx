@@ -21,6 +21,7 @@ import { api, setAdminToken } from '@/lib/api-client';
 import type { Challenge, User, ChallengeDifficulty, Submission, ScoreboardEntry } from '@shared/types';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useNavigate } from 'react-router-dom';
+import { useUserStore } from '@/stores/userStore';
 const ADMIN_DEMO_TOKEN = 'secret-admin-token';
 const challengeSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -60,7 +61,7 @@ function ChallengeDialog({ challenge, onOpenChange, open }: {challenge?: Challen
         });
       }
     }
-  }, [challenge, open, form.reset, form]);
+  }, [challenge, open, form]);
   const mutation = useMutation({
     mutationFn: (values: ChallengeFormValues) => {
       const payload = { ...values, points: Number(values.points), tags: values.tags.split(',').map((t) => t.trim()) };
@@ -347,9 +348,19 @@ export function AdminPanel() {
   const [token, setToken] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+  const storedToken = useUserStore(s => s.adminToken);
+  const login = useUserStore(s => s.login);
+  useEffect(() => {
+    if (storedToken) {
+      setAdminToken(storedToken);
+      setIsAuthenticated(true);
+    }
+  }, [storedToken]);
   const handleAuth = () => {
     if (token.trim() === ADMIN_DEMO_TOKEN.trim()) {
       setAdminToken(token);
+      // Mock login as admin to store the token
+      login({ id: 'admin', name: 'Admin', score: 0, solvedChallenges: [] }, true, token);
       setIsAuthenticated(true);
       toast.success('Authentication successful!');
     } else {
