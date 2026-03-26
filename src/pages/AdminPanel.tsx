@@ -4,7 +4,18 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { PlusCircle, Edit, Trash2, Users, ClipboardList, Loader2, BarChart2, Download, ChevronLeft } from 'lucide-react';
+import { 
+  PlusCircle, 
+  Edit, 
+  Trash2, 
+  Users, 
+  ClipboardList, 
+  Loader2, 
+  BarChart2, 
+  Download, 
+  ChevronLeft,
+  Activity
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -16,6 +27,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api, setAdminToken } from '@/lib/api-client';
 import type { Challenge, User, ChallengeDifficulty, Submission, ScoreboardEntry } from '@shared/types';
@@ -324,7 +336,7 @@ function AnalyticsTab() {
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
                 <XAxis dataKey="name" stroke="#888" fontSize={12} />
                 <YAxis stroke="#888" fontSize={12} />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', color: '#333', border: 'none', borderRadius: '8px' }}
                 />
                 <Legend />
@@ -343,7 +355,7 @@ function AnalyticsTab() {
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
                 <XAxis dataKey="name" stroke="#888" fontSize={12} />
                 <YAxis stroke="#888" fontSize={12} />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', color: '#333', border: 'none', borderRadius: '8px' }}
                 />
                 <Legend />
@@ -384,7 +396,7 @@ export function AdminPanel() {
       <AppLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-8 md:py-10 lg:py-12 flex items-center justify-center min-h-[70vh]">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               className="max-w-md w-full p-8 border border-border/50 rounded-2xl shadow-2xl bg-card/50 backdrop-blur-md"
@@ -393,7 +405,7 @@ export function AdminPanel() {
               <p className="text-muted-foreground text-center mb-8">Secure portal for platform administrators.</p>
               <form onSubmit={(e) => { e.preventDefault(); handleAuth(); }} className="space-y-4">
                 <div className="space-y-2">
-                  <FormLabel className="text-sm font-semibold">Administrator Token</FormLabel>
+                  <Label className="text-sm font-semibold">Administrator Token</Label>
                   <Input
                     type="password"
                     placeholder="Enter token"
@@ -422,7 +434,7 @@ export function AdminPanel() {
         <div className="py-8 md:py-10 lg:py-12">
           <div className="flex justify-between items-center mb-8">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" onClick={() => navigate('/')}>
+              <Button variant="ghost" onClick={() => navigate('/')} className="hover:bg-accent/50">
                 <ChevronLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
@@ -433,7 +445,7 @@ export function AdminPanel() {
             <TabsList className="grid w-full grid-cols-4 h-12 p-1 bg-muted/50 rounded-xl">
               <TabsTrigger value="challenges" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm"><ClipboardList className="w-4 h-4 mr-2" />Challenges</TabsTrigger>
               <TabsTrigger value="users" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm"><Users className="w-4 h-4 mr-2" />Users</TabsTrigger>
-              <TabsTrigger value="submissions" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">Submissions</TabsTrigger>
+              <TabsTrigger value="submissions" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm"><Activity className="w-4 h-4 mr-2" />Submissions</TabsTrigger>
               <TabsTrigger value="analytics" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm"><BarChart2 className="w-4 h-4 mr-2" />Analytics</TabsTrigger>
             </TabsList>
             <TabsContent value="challenges" className="mt-0 outline-none"><ChallengesTab /></TabsContent>
