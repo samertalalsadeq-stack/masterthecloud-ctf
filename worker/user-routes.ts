@@ -29,7 +29,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/challenges', async (c) => {
     const { cursor, limit, difficulty, tags } = c.req.query();
     const limitNum = limit ? Math.min(parseInt(limit, 10), 100) : 10;
-    // Fetch all challenges for robust in-memory filtering (standard CTF size)
     const { items: allChallenges } = await ChallengeEntity.list(c.env, null, 1000);
     let filteredItems = allChallenges;
     if (difficulty && difficulty !== 'all') {
@@ -43,40 +42,31 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
         );
       }
     }
-    // Pagination logic
     const startIndex = cursor ? filteredItems.findIndex(item => item.id === cursor) + 1 : 0;
     const paginatedItems = filteredItems.slice(startIndex, startIndex + limitNum);
     const nextCursor = (startIndex + limitNum < filteredItems.length)
       ? paginatedItems[paginatedItems.length - 1].id
       : null;
-    const publicChallenges = paginatedItems.map(challenge => {
-      const { flag, ...rest } = challenge;
-      return rest;
-    });
+    const publicChallenges = paginatedItems.map(({ flag, ...rest }) => rest);
     return ok(c, { items: publicChallenges, next: nextCursor });
   });
   app.get('/api/challenges/:id', async (c) => {
     const id = c.req.param('id');
     const challenge = new ChallengeEntity(c.env, id);
     if (!await challenge.exists()) return notFound(c, 'Challenge not found');
-    const state = await challenge.getState();
-    const { flag, ...publicChallenge } = state;
+    const { flag, ...publicChallenge } = await challenge.getState();
     return ok(c, publicChallenge);
   });
   app.get('/api/challenges/:id/stats', async (c) => {
     const challengeId = c.req.param('id');
     const { items: submissions } = await SubmissionEntity.list(c.env, null, 1000);
     const challengeSubmissions = submissions.filter(s => s.challengeId === challengeId);
-    // Find first solve strictly by timestamp
     const sortedSolves = challengeSubmissions.sort((a, b) => a.ts - b.ts);
     const firstBloodSubmission = sortedSolves[0];
     let firstBloodUser = null;
     if (firstBloodSubmission) {
-        const userEntity = new UserEntity(c.env, firstBloodSubmission.userId);
-        if (await userEntity.exists()) {
-            const user = await userEntity.getState();
-            firstBloodUser = { id: user.id, name: user.name };
-        }
+      const user = await new UserEntity(c.env, firstBloodSubmission.userId).getState();
+      if (user.id) firstBloodUser = { id: user.id, name: user.name };
     }
     return ok(c, {
       solvesCount: challengeSubmissions.length,
@@ -96,11 +86,9 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       return bad(c, 'You have already solved this challenge.');
     }
     const challenge = await challengeEntity.getState();
-    const submittedFlag = flag.trim();
-    if (submittedFlag !== challenge.flag) {
+    if (flag.trim() !== challenge.flag) {
       return bad(c, 'Incorrect flag. Try again!');
     }
-    // Atomic detection of First Blood
     const { items: allSubmissions } = await SubmissionEntity.list(c.env, null, 1000);
     const isFirstBlood = !allSubmissions.some(s => s.challengeId === challengeId);
     let pointsAwarded = challenge.points;
@@ -116,11 +104,11 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       userId,
       userName: user.name,
       ts: Date.now(),
-      pointsAwarded: pointsAwarded,
-      isFirstBlood: isFirstBlood,
+      pointsAwarded,
+      isFirstBlood,
     };
     await SubmissionEntity.create(c.env, submission);
-    return ok(c, { message: `Correct flag! ${isFirstBlood ? 'First blood bonus!': ''}`, pointsAwarded });
+    return ok(c, { message: `Correct flag! ${isFirstBlood ? 'First blood bonus!' : ''}`, pointsAwarded });
   });
   app.get('/api/scoreboard', async (c) => {
     const [{ items: users }, { items: submissions }] = await Promise.all([
@@ -140,9 +128,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
         lastSolveTs: lastSolve,
       };
     }).sort((a, b) => {
-      // Primary: Score (Descending)
       if (b.score !== a.score) return b.score - a.score;
-      // Secondary: Last Solve Timestamp (Ascending - earlier solve wins)
       if (a.lastSolveTs === 0 && b.lastSolveTs !== 0) return 1;
       if (b.lastSolveTs === 0 && a.lastSolveTs !== 0) return -1;
       return a.lastSolveTs - b.lastSolveTs;
