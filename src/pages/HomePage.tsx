@@ -142,14 +142,6 @@ export function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
             >
-              <motion.img
-                src="https://www.cloudflare.com/img/logo/cloudflare-logo-stylized.svg"
-                alt="Cloudflare"
-                className="h-12 md:h-16 w-auto mx-auto mb-8 block"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-              />
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-indigo/10 border border-brand-indigo/20 text-brand-indigo text-xs font-black uppercase tracking-[0.2em] mb-8 shadow-sm">
                 <Cloud className="h-4 w-4" />
                 Edge-Powered Security
