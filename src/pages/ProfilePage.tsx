@@ -1,8 +1,8 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Award, BarChart } from 'lucide-react';
+import { Award, BarChart, ChevronLeft } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -44,6 +44,7 @@ const ProfileSkeleton = () => (
   </div>
 );
 export function ProfilePage() {
+  const navigate = useNavigate();
   const userId = useUserStore(s => s.userId);
   const { data: user, isLoading: isLoadingUser } = useQuery<UserType>({
     queryKey: ['user', userId],
@@ -60,12 +61,22 @@ export function ProfilePage() {
     return (
       <AppLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-8 md:py-10 lg:py-12 text-center">
-            <h1 className="text-2xl font-bold">Please Log In</h1>
-            <p className="text-muted-foreground mt-2">You need to be logged in to view your profile.</p>
-            <Button asChild className="mt-4">
-              <Link to="/">Go to Home</Link>
+          <div className="py-8 md:py-10 lg:py-12">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/')} 
+              className="mb-6 group hover:bg-accent/50 transition-all duration-200 hover:scale-105"
+            >
+              <ChevronLeft className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
+              <span className="font-bold">Back to Home</span>
             </Button>
+            <div className="text-center py-12">
+              <h1 className="text-2xl font-bold">Please Log In</h1>
+              <p className="text-muted-foreground mt-2">You need to be logged in to view your profile.</p>
+              <Button asChild className="mt-4">
+                <Link to="/">Go to Home</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </AppLayout>
@@ -76,6 +87,14 @@ export function ProfilePage() {
     <AppLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-8 md:py-10 lg:py-12">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/')} 
+            className="mb-6 group hover:bg-accent/50 transition-all duration-200 hover:scale-105"
+          >
+            <ChevronLeft className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
+            <span className="font-bold">Back to Home</span>
+          </Button>
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
