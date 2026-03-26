@@ -18,7 +18,8 @@ import { LoginModal } from '@/components/LoginModal';
 const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], isLoading: boolean }) => {
   const latestSolveUser = useMemo(() => {
     if (!entries?.length) return null;
-    return [...entries].sort((a, b) => b.lastSolveTs - a.lastSolveTs)[0];
+    const sorted = [...entries].filter(e => e.lastSolveTs > 0).sort((a, b) => b.lastSolveTs - a.lastSolveTs);
+    return sorted[0] || null;
   }, [entries]);
   return (
     <Card className="w-full max-w-2xl bg-card/50 backdrop-blur-sm border-border/50 shadow-2xl rounded-2xl overflow-hidden">
@@ -38,7 +39,7 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-6">
-        {latestSolveUser && latestSolveUser.lastSolveTs > 0 && (
+        {latestSolveUser && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -54,54 +55,56 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
           </motion.div>
         )}
         <div className="space-y-3">
-          {isLoading && Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-4 p-2">
-              <Skeleton className="h-10 w-10 rounded-full" />
-              <div className="flex-grow space-y-2">
-                <Skeleton className="h-4 w-3/5" />
-                <Skeleton className="h-3 w-4/5" />
-              </div>
-              <Skeleton className="h-6 w-16" />
-            </div>
-          ))}
-          {!isLoading && (entries ?? []).slice(0, 10).map((entry, index) => (
-            <motion.div
-              key={entry.userId}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              className={cn(
-                "flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative",
-                index < 3 ? "bg-accent/30" : "hover:bg-accent/20"
-              )}
-            >
-              <div className={cn(
-                "font-bold text-lg w-8 text-center font-mono",
-                index === 0 && "text-yellow-500 scale-110",
-                index === 1 && "text-slate-400",
-                index === 2 && "text-orange-600"
-              )}>
-                #{index + 1}
-              </div>
-              <Avatar className="h-10 w-10 border-2 border-transparent group-hover:border-primary/20 transition-all shadow-sm">
-                <AvatarImage src={`https://api.dicebear.com/8.x/bottts/svg?seed=${entry.name}`} />
-                <AvatarFallback>{entry.name.charAt(0).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <div className="flex-grow">
-                <p className="font-bold text-foreground group-hover:text-primary transition-colors">{entry.name}</p>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-bold">
-                    {entry.solvedCount} SOLVES
-                  </span>
-                  <span className="text-[10px] text-muted-foreground italic">
-                    {entry.lastSolveTs ? formatDistanceToNow(new Date(entry.lastSolveTs), { addSuffix: true }) : 'Ghosting...'}
-                  </span>
+          {isLoading ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 p-2">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="flex-grow space-y-2">
+                  <Skeleton className="h-4 w-3/5" />
+                  <Skeleton className="h-3 w-4/5" />
                 </div>
+                <Skeleton className="h-6 w-16" />
               </div>
-              <div className="font-black text-lg text-primary tabular-nums group-hover:scale-105 transition-transform">{entry.score}</div>
-            </motion.div>
-          ))}
-          {!isLoading && entries?.length === 0 && (
+            ))
+          ) : entries?.length ? (
+            entries.slice(0, 10).map((entry, index) => (
+              <motion.div
+                key={entry.userId}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+                className={cn(
+                  "flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative",
+                  index < 3 ? "bg-accent/30" : "hover:bg-accent/20"
+                )}
+              >
+                <div className={cn(
+                  "font-bold text-lg w-8 text-center font-mono",
+                  index === 0 && "text-yellow-500 scale-110",
+                  index === 1 && "text-slate-400",
+                  index === 2 && "text-orange-600"
+                )}>
+                  #{index + 1}
+                </div>
+                <Avatar className="h-10 w-10 border-2 border-transparent group-hover:border-primary/20 transition-all shadow-sm">
+                  <AvatarImage src={`https://api.dicebear.com/8.x/bottts/svg?seed=${entry.name}`} />
+                  <AvatarFallback>{entry.name.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div className="flex-grow">
+                  <p className="font-bold text-foreground group-hover:text-primary transition-colors">{entry.name}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-bold">
+                      {entry.solvedCount} SOLVES
+                    </span>
+                    <span className="text-[10px] text-muted-foreground italic">
+                      {entry.lastSolveTs ? formatDistanceToNow(new Date(entry.lastSolveTs), { addSuffix: true }) : 'Ghosting...'}
+                    </span>
+                  </div>
+                </div>
+                <div className="font-black text-lg text-primary tabular-nums group-hover:scale-105 transition-transform">{entry.score}</div>
+              </motion.div>
+            ))
+          ) : (
             <div className="text-center py-16 border-2 border-dashed border-border/50 rounded-2xl bg-muted/10">
               <div className="relative inline-block mb-4">
                 <Cloud className="w-16 h-16 text-primary/20" />
