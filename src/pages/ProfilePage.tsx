@@ -52,7 +52,7 @@ export function ProfilePage() {
   });
   const { data: challenges, isLoading: isLoadingChallenges } = useQuery<{items: Challenge[]}>({
     queryKey: ['challenges'],
-    queryFn: () => api('/api/challenges'),
+    queryFn: () => api('/api/challenges', { params: { limit: 100 } }),
   });
   const safeChallenges = challenges?.items ?? [];
   const solvedChallenges = safeChallenges.filter(c => user?.solvedChallenges?.includes(c.id) ?? false);
@@ -102,13 +102,12 @@ export function ProfilePage() {
                     <CardTitle className="text-2xl pt-4">{user.name}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {/* Placeholder for future "Edit Name" functionality */}
                     <Button variant="outline" disabled>Edit Name (soon)</Button>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><BarChart /> Stats</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><BarChart className="w-5 h-5" /> Stats</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4 text-lg">
                     <div className="flex justify-between items-center">
@@ -130,7 +129,7 @@ export function ProfilePage() {
               >
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Award /> Solved Challenges</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><Award className="w-5 h-5 text-yellow-500" /> Solved Challenges</CardTitle>
                     <CardDescription>A list of all the challenges you have conquered.</CardDescription>
                   </CardHeader>
                   <CardContent>
