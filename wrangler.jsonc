@@ -2,18 +2,9 @@
  * Wrangler config for the Cloudflare Durable Object template
  * STRICTLY DO NOT MODIFY THIS FILE - Hidden from AI to prevent breaking core functionality
  */
-{
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "masterthecloud-ctf",
-  "main": "src/index.ts", // Path to your entry point
-  "compatibility_date": "2024-04-18",
-  "observability": {
-    "enabled": true
-  }
-}
  {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "flagforge-fhaot_uip7mnyrlrhqicm",
+	"name": "masterthecloud-ctf",
 	"main": "worker/index.ts",
 	"compatibility_date": "2025-04-24",
 	"assets": {
