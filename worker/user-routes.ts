@@ -4,8 +4,8 @@ import type { Env } from './core-utils';
 import { UserEntity, ChallengeEntity, SubmissionEntity, ChallengeState } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
 import type { ScoreboardEntry, Submission, User, Challenge } from "@shared/types";
-const ADMIN_TOKEN = 'secret-admin-token';
-// Module-level seeding guard to prevent redundant DO operations on every request
+// Fallback for development; Production should use 'wrangler secret put ADMIN_TOKEN'
+const DEFAULT_ADMIN_TOKEN = 'secret-admin-token';
 let isSeeded = false;
 const challengeSchema = z.object({
   title: z.string().min(3),
@@ -18,19 +18,20 @@ const challengeSchema = z.object({
   codeLanguage: z.string().optional(),
   codeSnippet: z.string().optional(),
 });
-export function userRoutes(app: Hono<{ Bindings: Env }>) {
+export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } }>) {
   // --- Optimized Seeding Middleware ---
   app.use('/api/*', async (c, next) => {
     if (!isSeeded) {
       try {
+        console.info('[INIT] Checking entity seeds...');
         await Promise.all([
           UserEntity.ensureSeed(c.env),
           ChallengeEntity.ensureSeed(c.env),
         ]);
         isSeeded = true;
+        console.info('[INIT] Platform entities synchronized.');
       } catch (e) {
         console.error('[SEED ERROR]', e);
-        // We don't block the request, but we don't set isSeeded to true so it retries next time
       }
     }
     await next();
@@ -39,7 +40,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/challenges', async (c) => {
     const { cursor, limit, difficulty, tags } = c.req.query();
     const limitNum = limit ? Math.min(parseInt(limit, 10), 50) : 12;
-    // Fetch with a reasonable cap to avoid DO execution limits
     const { items: allChallenges } = await ChallengeEntity.list(c.env, null, 200);
     let filteredItems = allChallenges;
     if (difficulty && difficulty !== 'all') {
@@ -99,7 +99,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (flag.trim() !== challenge.flag) {
       return bad(c, 'Incorrect flag. Try harder!');
     }
-    // Atomic solve awarding
     const { items: allSubmissions } = await SubmissionEntity.list(c.env, null, 1000);
     const isFirstBlood = !allSubmissions.some(s => s.challengeId === challengeId);
     let pointsAwarded = challenge.points;
@@ -125,15 +124,14 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     });
   });
   app.get('/api/scoreboard', async (c) => {
-    // Parallelize fetches for performance
     const [{ items: users }, { items: submissions }] = await Promise.all([
       UserEntity.list(c.env, null, 100),
       SubmissionEntity.list(c.env, null, 500)
     ]);
     const scoreboard: ScoreboardEntry[] = users.map(user => {
       const userSubmissions = submissions.filter(s => s.userId === user.id);
-      const lastSolve = userSubmissions.length > 0 
-        ? Math.max(...userSubmissions.map(s => s.ts)) 
+      const lastSolve = userSubmissions.length > 0
+        ? Math.max(...userSubmissions.map(s => s.ts))
         : 0;
       return {
         userId: user.id,
@@ -165,9 +163,11 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     return ok(c, await UserEntity.create(c.env, user));
   });
   // --- Admin Routes ---
-  const admin = new Hono<{ Bindings: Env }>();
+  const admin = new Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } }>();
   admin.use('*', async (c, next) => {
-    if (c.req.header('x-admin-token') !== ADMIN_TOKEN) {
+    const configuredToken = c.env.ADMIN_TOKEN || DEFAULT_ADMIN_TOKEN;
+    if (c.req.header('x-admin-token') !== configuredToken) {
+      console.warn(`[AUTH] Unauthorized admin attempt from ${c.req.header('cf-connecting-ip') || 'unknown'}`);
       return c.json({ success: false, error: 'Unauthorized Administrative Access' }, 401);
     }
     await next();
