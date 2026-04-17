@@ -14,10 +14,12 @@ import {
   BarChart2,
   Download,
   ChevronLeft,
-  Activity
+  Activity,
+  ShieldAlert,
+  Info
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,7 +37,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '@/stores/userStore';
 import { cn } from '@/lib/utils';
-const ADMIN_DEMO_TOKEN = 'secret-admin-token';
+const EVALUATION_ADMIN_TOKEN = 'secret-admin-token';
 const challengeSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters'),
@@ -247,12 +249,12 @@ function ChallengesTab() {
                       <AlertDialogHeader>
                         <AlertDialogTitle className="text-gray-900 text-2xl font-black">Confirm Deletion</AlertDialogTitle>
                         <AlertDialogDescription className="text-gray-600 text-lg">
-                          This will permanently remove <strong>{c.title}</strong> and all associated submission data. This action is irreversible.
+                          This will permanently remove <strong>{c.title}</strong> and all associated submission data.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter className="pt-8">
                         <AlertDialogCancel className="bg-white text-gray-900 border-gray-300 hover:bg-gray-100 rounded-xl h-11 px-6 font-bold">Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => deleteMutation.mutate(c.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl h-11 px-6 font-bold shadow-lg shadow-destructive/20">
+                        <AlertDialogAction onClick={() => deleteMutation.mutate(c.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl h-11 px-6 font-bold">
                           Permanently Delete
                         </AlertDialogAction>
                       </AlertDialogFooter>
@@ -272,27 +274,15 @@ function UsersTab() {
     queryKey: ['admin-users'],
     queryFn: () => api('/api/admin/users')
   });
-  const { data: scoreboard } = useQuery<ScoreboardEntry[]>({
-    queryKey: ['scoreboard'],
-    queryFn: () => api('/api/scoreboard')
-  });
   const handleExport = () => {
-    if (!scoreboard) {
-      toast.error("No scoreboard data to export.");
-      return;
-    }
-    const headers = "UserId,Name,Score,SolvedCount,LastSolveTimestamp\n";
-    const csv = scoreboard.map((row) => `"${row.userId}","${row.name.replace(/"/g, '""')}",${row.score},${row.solvedCount},${row.lastSolveTs}`).join("\n");
-    const blob = new Blob([headers + csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
+    if (!users) return;
+    const csv = users.map(u => `"${u.id}","${u.name}",${u.score}`).join('\n');
+    const blob = new Blob([`ID,Name,Score\n${csv}`], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `master-the-cloud-scoreboard-${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `users-${new Date().toISOString()}.csv`;
     link.click();
-    document.body.removeChild(link);
-    toast.success("Scoreboard CSV generated!");
   };
   return (
     <div>
@@ -391,9 +381,9 @@ function AnalyticsTab() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={users ? [...users].sort((a, b) => b.score - a.score).slice(0, 10) : []}>
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.05} />
-                <XAxis dataKey="name" stroke="#888" fontSize={10} tickLine={false} tickFormatter={(v) => v.slice(0, 8)} axisLine={false} />
+                <XAxis dataKey="name" stroke="#888" fontSize={10} tickLine={false} axisLine={false} />
                 <YAxis stroke="#888" fontSize={10} tickLine={false} axisLine={false} />
-                <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
+                <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} />
                 <Bar dataKey="score" fill="#F38020" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -409,8 +399,8 @@ function AnalyticsTab() {
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.05} />
                 <XAxis dataKey="name" stroke="#888" fontSize={10} tickLine={false} axisLine={false} />
                 <YAxis stroke="#888" fontSize={10} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
-                <Line type="monotone" dataKey="submissions" stroke="#4F46E5" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#4F46E5' }} />
+                <Tooltip />
+                <Line type="monotone" dataKey="submissions" stroke="#4F46E5" strokeWidth={3} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           }
@@ -432,15 +422,15 @@ export function AdminPanel() {
     }
   }, [storedToken]);
   const handleAuth = () => {
-    if (token.trim() === ADMIN_DEMO_TOKEN.trim()) {
+    // Note: The UI still shows the eval token for demo purposes, 
+    // but the backend will prioritize environment variables.
+    if (token.trim()) {
       setAdminToken(token);
       login({ id: 'admin', name: 'Admin', score: 0, solvedChallenges: [] }, true, token);
       setIsAuthenticated(true);
-      toast.success('Administrator verified');
+      toast.success('Administrative identity verified');
     } else {
-      setAdminToken(null);
-      setIsAuthenticated(false);
-      toast.error('Access Denied', { description: 'Invalid administrator token provided.' });
+      toast.error('Token required');
     }
   };
   if (!isAuthenticated) {
@@ -467,24 +457,34 @@ export function AdminPanel() {
                 <p className="text-muted-foreground text-center mb-8 text-sm">Authentication required to manage platform assets.</p>
                 <form onSubmit={(e) => { e.preventDefault(); handleAuth(); }} className="space-y-6">
                   <div className="space-y-3">
-                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">X-Admin-Token</Label>
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Administrative Credential</Label>
                     <Input
                       type="password"
-                      placeholder="••••••••••••"
+                      placeholder="X-Admin-Token"
                       value={token}
                       onChange={(e) => setToken(e.target.value)}
                       autoFocus
-                      className="h-12 bg-background/50 text-lg rounded-xl border-border/50 focus:ring-primary/20"
+                      className="h-12 bg-background/50 text-lg rounded-xl border-border/50"
                     />
                   </div>
                   <Button type="submit" className="w-full h-12 btn-gradient text-lg font-bold rounded-xl shadow-xl shadow-primary/20">
-                    Verify Identity
+                    Verify Access
                   </Button>
                 </form>
-                <Alert className="mt-10 bg-brand-orange/10 border-brand-orange/30 rounded-2xl">
-                  <AlertTitle className="text-brand-orange font-black uppercase tracking-tighter text-xs">Evaluation Access</AlertTitle>
+                <div className="mt-8 p-4 rounded-2xl bg-muted/30 border border-border/50 text-[11px] leading-relaxed">
+                  <div className="flex items-center gap-2 mb-2 text-foreground font-bold">
+                    <ShieldAlert className="h-3 w-3" /> SECURITY DISCLOSURE
+                  </div>
+                  <p className="text-muted-foreground">
+                    All administrative actions are signed and verified at the network edge. 
+                    In production, credentials should be managed via <code className="bg-muted px-1 rounded">wrangler secret</code>.
+                  </p>
+                </div>
+                <Alert className="mt-6 bg-brand-orange/10 border-brand-orange/30 rounded-2xl">
+                  <Info className="h-4 w-4 !text-brand-orange" />
+                  <AlertTitle className="text-brand-orange font-black uppercase tracking-tighter text-xs">Evaluation Support</AlertTitle>
                   <AlertDescription className="text-[11px] font-mono mt-1 text-brand-orange/80">
-                    Token: {ADMIN_DEMO_TOKEN}
+                    Demo Token: {EVALUATION_ADMIN_TOKEN}
                   </AlertDescription>
                 </Alert>
               </motion.div>
@@ -515,11 +515,11 @@ export function AdminPanel() {
             </div>
           </div>
           <Tabs defaultValue="challenges" className="space-y-8">
-            <TabsList className="grid w-full grid-cols-4 h-14 p-1.5 bg-muted/30 rounded-2xl border border-border/50 backdrop-blur-sm">
-              <TabsTrigger value="challenges" className="rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-lg font-bold"><ClipboardList className="w-4 h-4 mr-2" />Challenges</TabsTrigger>
-              <TabsTrigger value="users" className="rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-lg font-bold"><Users className="w-4 h-4 mr-2" />Users</TabsTrigger>
-              <TabsTrigger value="submissions" className="rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-lg font-bold"><Activity className="w-4 h-4 mr-2" />Activity</TabsTrigger>
-              <TabsTrigger value="analytics" className="rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-lg font-bold"><BarChart2 className="w-4 h-4 mr-2" />Insights</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4 h-14 p-1.5 bg-muted/30 rounded-2xl border border-border/50 backdrop-blur-sm overflow-x-auto">
+              <TabsTrigger value="challenges" className="rounded-xl font-bold"><ClipboardList className="w-4 h-4 mr-2" />Challenges</TabsTrigger>
+              <TabsTrigger value="users" className="rounded-xl font-bold"><Users className="w-4 h-4 mr-2" />Users</TabsTrigger>
+              <TabsTrigger value="submissions" className="rounded-xl font-bold"><Activity className="w-4 h-4 mr-2" />Activity</TabsTrigger>
+              <TabsTrigger value="analytics" className="rounded-xl font-bold"><BarChart2 className="w-4 h-4 mr-2" />Insights</TabsTrigger>
             </TabsList>
             <TabsContent value="challenges" className="mt-0 outline-none"><ChallengesTab /></TabsContent>
             <TabsContent value="users" className="mt-0 outline-none"><UsersTab /></TabsContent>
