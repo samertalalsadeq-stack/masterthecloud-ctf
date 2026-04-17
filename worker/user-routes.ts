@@ -4,7 +4,6 @@ import type { Env } from './core-utils';
 import { UserEntity, ChallengeEntity, SubmissionEntity, ChallengeState } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
 import type { ScoreboardEntry, Submission, User, Challenge } from "@shared/types";
-// Fallback for development; Production should use 'wrangler secret put ADMIN_TOKEN'
 const DEFAULT_ADMIN_TOKEN = 'secret-admin-token';
 let isSeeded = false;
 const challengeSchema = z.object({
@@ -19,19 +18,18 @@ const challengeSchema = z.object({
   codeSnippet: z.string().optional(),
 });
 export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } }>) {
-  // --- Optimized Seeding Middleware ---
+  // --- Resilient Seeding Middleware ---
   app.use('/api/*', async (c, next) => {
     if (!isSeeded) {
       try {
-        console.info('[INIT] Checking entity seeds...');
+        // Parallelized check to reduce cold-start latency
         await Promise.all([
           UserEntity.ensureSeed(c.env),
           ChallengeEntity.ensureSeed(c.env),
         ]);
         isSeeded = true;
-        console.info('[INIT] Platform entities synchronized.');
       } catch (e) {
-        console.error('[SEED ERROR]', e);
+        console.error('[FATAL] Synchronization failed:', e);
       }
     }
     await next();
@@ -119,14 +117,14 @@ export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } 
     };
     await SubmissionEntity.create(c.env, submission);
     return ok(c, {
-      message: `Correct flag! Master the Cloud protocol verified. ${isFirstBlood ? 'First Blood bonus awarded!' : ''}`,
+      message: `Correct flag! Protocol verified. ${isFirstBlood ? 'First Blood bonus awarded!' : ''}`,
       pointsAwarded
     });
   });
   app.get('/api/scoreboard', async (c) => {
     const [{ items: users }, { items: submissions }] = await Promise.all([
       UserEntity.list(c.env, null, 100),
-      SubmissionEntity.list(c.env, null, 500)
+      SubmissionEntity.list(c.env, null, 1000)
     ]);
     const scoreboard: ScoreboardEntry[] = users.map(user => {
       const userSubmissions = submissions.filter(s => s.userId === user.id);
@@ -141,8 +139,16 @@ export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } 
         lastSolveTs: lastSolve,
       };
     }).sort((a, b) => {
+      // Primary: Score (Descending)
       if (b.score !== a.score) return b.score - a.score;
-      return a.lastSolveTs - b.lastSolveTs || a.name.localeCompare(b.name);
+      // Secondary: Time of last solve (Ascending - earlier is better)
+      if (a.lastSolveTs !== b.lastSolveTs) {
+        if (a.lastSolveTs === 0) return 1;
+        if (b.lastSolveTs === 0) return -1;
+        return a.lastSolveTs - b.lastSolveTs;
+      }
+      // Tertiary: Alphabetical name (Ascending)
+      return a.name.localeCompare(b.name);
     });
     return ok(c, scoreboard);
   });
@@ -167,7 +173,6 @@ export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } 
   admin.use('*', async (c, next) => {
     const configuredToken = c.env.ADMIN_TOKEN || DEFAULT_ADMIN_TOKEN;
     if (c.req.header('x-admin-token') !== configuredToken) {
-      console.warn(`[AUTH] Unauthorized admin attempt from ${c.req.header('cf-connecting-ip') || 'unknown'}`);
       return c.json({ success: false, error: 'Unauthorized Administrative Access' }, 401);
     }
     await next();
