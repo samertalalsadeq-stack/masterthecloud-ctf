@@ -1,10 +1,10 @@
 import type { User, Challenge, Submission } from './types';
 export const MOCK_USERS: User[] = [
-  { id: 'u1', name: 'Alice', score: 0, solvedChallenges: [] },
-  { id: 'u2', name: 'Bob', score: 0, solvedChallenges: [] },
-  { id: 'u3', name: 'Charlie', score: 0, solvedChallenges: [] },
-  { id: 'u4', name: 'Diana', score: 0, solvedChallenges: [] },
-  { id: 'u5', name: 'Eve', score: 0, solvedChallenges: [] },
+  { id: 'u1', name: 'Alice', score: 1200, solvedChallenges: ['c1','c2','c3','c4','c5','c6'] },
+  { id: 'u2', name: 'Bob', score: 800, solvedChallenges: ['c1','c2','c3','c4','c5'] },
+  { id: 'u3', name: 'Charlie', score: 500, solvedChallenges: ['c1','c2','c3','c4'] },
+  { id: 'u4', name: 'Diana', score: 300, solvedChallenges: ['c1','c2','c3'] },
+  { id: 'u5', name: 'Eve', score: 150, solvedChallenges: ['c1','c2'] },
 ];
 export const MOCK_CHALLENGES: (Challenge & { flag: string })[] = [
   {
@@ -78,4 +78,25 @@ export const MOCK_CHALLENGES: (Challenge & { flag: string })[] = [
     createdAt: Date.now(),
   },
 ];
-export const MOCK_SUBMISSIONS: Submission[] = [];
+export const MOCK_SUBMISSIONS: Submission[] = [
+  { id: 'sub1', challengeId: 'c1', userId: 'u1', userName: 'Alice', ts: 1724800000000, pointsAwarded: 50, isFirstBlood: true },
+  { id: 'sub2', challengeId: 'c2', userId: 'u1', userName: 'Alice', ts: 1724836000000, pointsAwarded: 100, isFirstBlood: false },
+  { id: 'sub3', challengeId: 'c3', userId: 'u1', userName: 'Alice', ts: 1724872000000, pointsAwarded: 150, isFirstBlood: false },
+  { id: 'sub4', challengeId: 'c4', userId: 'u1', userName: 'Alice', ts: 1724908000000, pointsAwarded: 200, isFirstBlood: false },
+  { id: 'sub5', challengeId: 'c5', userId: 'u1', userName: 'Alice', ts: 1724944000000, pointsAwarded: 300, isFirstBlood: false },
+  { id: 'sub6', challengeId: 'c6', userId: 'u1', userName: 'Alice', ts: 1724980000000, pointsAwarded: 400, isFirstBlood: false },
+  { id: 'sub7', challengeId: 'c1', userId: 'u2', userName: 'Bob', ts: 1725016000000, pointsAwarded: 50, isFirstBlood: false },
+  { id: 'sub8', challengeId: 'c2', userId: 'u2', userName: 'Bob', ts: 1725052000000, pointsAwarded: 100, isFirstBlood: false },
+  { id: 'sub9', challengeId: 'c3', userId: 'u2', userName: 'Bob', ts: 1725088000000, pointsAwarded: 150, isFirstBlood: false },
+  { id: 'sub10', challengeId: 'c4', userId: 'u2', userName: 'Bob', ts: 1725124000000, pointsAwarded: 200, isFirstBlood: false },
+  { id: 'sub11', challengeId: 'c5', userId: 'u2', userName: 'Bob', ts: 1725160000000, pointsAwarded: 300, isFirstBlood: false },
+  { id: 'sub12', challengeId: 'c1', userId: 'u3', userName: 'Charlie', ts: 1725196000000, pointsAwarded: 50, isFirstBlood: false },
+  { id: 'sub13', challengeId: 'c2', userId: 'u3', userName: 'Charlie', ts: 1725232000000, pointsAwarded: 100, isFirstBlood: false },
+  { id: 'sub14', challengeId: 'c3', userId: 'u3', userName: 'Charlie', ts: 1725268000000, pointsAwarded: 150, isFirstBlood: false },
+  { id: 'sub15', challengeId: 'c4', userId: 'u3', userName: 'Charlie', ts: 1725304000000, pointsAwarded: 200, isFirstBlood: false },
+  { id: 'sub16', challengeId: 'c1', userId: 'u4', userName: 'Diana', ts: 1725340000000, pointsAwarded: 50, isFirstBlood: false },
+  { id: 'sub17', challengeId: 'c2', userId: 'u4', userName: 'Diana', ts: 1725376000000, pointsAwarded: 100, isFirstBlood: false },
+  { id: 'sub18', challengeId: 'c3', userId: 'u4', userName: 'Diana', ts: 1725390000000, pointsAwarded: 150, isFirstBlood: false },
+  { id: 'sub19', challengeId: 'c1', userId: 'u5', userName: 'Eve', ts: 1725384000000, pointsAwarded: 50, isFirstBlood: false },
+  { id: 'sub20', challengeId: 'c2', userId: 'u5', userName: 'Eve', ts: 1725390000000, pointsAwarded: 100, isFirstBlood: false },
+];

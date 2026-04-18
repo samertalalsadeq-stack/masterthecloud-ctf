@@ -26,6 +26,7 @@ export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } 
         await Promise.all([
           UserEntity.ensureSeed(c.env),
           ChallengeEntity.ensureSeed(c.env),
+          SubmissionEntity.ensureSeed(c.env),
         ]);
         isSeeded = true;
       } catch (e) {
@@ -124,13 +125,18 @@ export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } 
   app.get('/api/scoreboard', async (c) => {
     const [{ items: users }, { items: submissions }] = await Promise.all([
       UserEntity.list(c.env, null, 100),
-      SubmissionEntity.list(c.env, null, 1000)
+      SubmissionEntity.list(c.env, null, 5000)
     ]);
+
+    const subsByUser: Record<string, number[]> = submissions.reduce((acc, s) => {
+      const uid = s.userId;
+      if (!acc[uid]) acc[uid] = [];
+      acc[uid].push(s.ts);
+      return acc;
+    }, {} as Record<string, number[]>);
     const scoreboard: ScoreboardEntry[] = users.map(user => {
-      const userSubmissions = submissions.filter(s => s.userId === user.id);
-      const lastSolve = userSubmissions.length > 0
-        ? Math.max(...userSubmissions.map(s => s.ts))
-        : 0;
+      const userSubsTs = subsByUser[user.id] || [];
+      const lastSolve = userSubsTs.length > 0 ? Math.max(...userSubsTs) : 0;
       return {
         userId: user.id,
         name: user.name,
@@ -208,8 +214,9 @@ export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } 
   });
   admin.delete('/challenges/:id', async (c) => {
     const id = c.req.param('id');
-    const deleted = await ChallengeEntity.delete(c.env, id);
-    if (!deleted) return notFound(c, 'Challenge not found');
+    const challenge = new ChallengeEntity(c.env, id);
+    if (!await challenge.exists()) return notFound(c, 'Challenge not found');
+    await challenge.delete();
     return ok(c, { id });
   });
   admin.get('/users', async (c) => {

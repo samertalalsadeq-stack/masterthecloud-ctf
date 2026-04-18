@@ -3,7 +3,7 @@
  */
 import { IndexedEntity } from "./core-utils";
 import type { User, Challenge, Submission } from "@shared/types";
-import { MOCK_USERS, MOCK_CHALLENGES } from "@shared/mock-data";
+import { MOCK_USERS, MOCK_CHALLENGES, MOCK_SUBMISSIONS } from "@shared/mock-data";
 // USER ENTITY
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user";
@@ -41,4 +41,5 @@ export class SubmissionEntity extends IndexedEntity<Submission> {
     pointsAwarded: 0,
     isFirstBlood: false,
   };
+  static seedData = MOCK_SUBMISSIONS;
 }
