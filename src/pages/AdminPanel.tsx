@@ -38,6 +38,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '@/stores/userStore';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 const EVALUATION_ADMIN_TOKEN = 'secret-admin-token';
 const challengeSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
