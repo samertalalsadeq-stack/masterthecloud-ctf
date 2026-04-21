@@ -16,8 +16,7 @@ import {
   ChevronLeft,
   Activity,
   ShieldAlert,
-  Info,
-  ExternalLink
+  Info
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -28,7 +27,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -84,7 +82,7 @@ function ChallengeDialog({ challenge, onOpenChange, open }: { challenge?: Challe
       const payload = {
         ...values,
         points: Number(values.points),
-        tags: values.tags.split(',').map((t) => t.trim())
+        tags: values.tags.split(',').map((t) => t.trim()).filter(Boolean)
       };
       const endpoint = challenge ? `/api/admin/challenges/${challenge.id}` : '/api/admin/challenges';
       const method = challenge ? 'PUT' : 'POST';
@@ -222,7 +220,7 @@ function ChallengesTab() {
           <TableBody>
             {isLoading ? (
               <TableRow><TableCell colSpan={5} className="text-center py-20 text-muted-foreground animate-pulse font-mono uppercase tracking-widest text-xs">Accessing encrypted storage...</TableCell></TableRow>
-            ) : challenges?.length === 0 ? (
+            ) : (challenges ?? []).length === 0 ? (
               <TableRow><TableCell colSpan={5} className="text-center py-20 text-muted-foreground italic">No challenges active in perimeter.</TableCell></TableRow>
             ) : challenges?.map((c) => (
               <TableRow key={c.id} className="hover:bg-accent/10 transition-colors border-b border-border/50">
@@ -298,7 +296,7 @@ function UsersTab() {
           <TableBody>
             {isLoading ? (
               <TableRow><TableCell colSpan={4} className="text-center py-20 font-mono text-xs uppercase tracking-widest animate-pulse">Scanning user nodes...</TableCell></TableRow>
-            ) : users?.map((u) => (
+            ) : (users ?? []).map((u) => (
               <TableRow key={u.id} className="hover:bg-accent/10 border-b border-border/50">
                 <TableCell className="font-black text-foreground text-base py-5">{u.name}</TableCell>
                 <TableCell className="font-black text-brand-indigo text-xl tabular-nums">{u.score}</TableCell>
@@ -334,7 +332,7 @@ function SubmissionsTab() {
             {isLoading ? (
               <TableRow><TableCell colSpan={4} className="text-center py-20 font-mono text-xs uppercase tracking-widest animate-pulse">Intercepting transmissions...</TableCell></TableRow>
             ) : (
-              submissions?.map(s => (
+              (submissions ?? []).map(s => (
                 <TableRow key={s.id} className="hover:bg-accent/10 border-b border-border/50">
                   <TableCell className="text-muted-foreground font-mono text-xs py-4">{new Date(s.ts).toLocaleString()}</TableCell>
                   <TableCell className="font-black text-foreground">{s.userName}</TableCell>
@@ -366,11 +364,16 @@ function AnalyticsTab() {
     queryFn: () => api('/api/admin/submissions')
   });
   const submissionsOverTime = React.useMemo(() => {
-    return submissions ? submissions.slice().sort((a, b) => a.ts - b.ts).map((s, i) => ({
+    if (!submissions || submissions.length === 0) return [];
+    return [...submissions].sort((a, b) => a.ts - b.ts).map((s, i) => ({
       name: new Date(s.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       submissions: i + 1
-    })) : [];
+    }));
   }, [submissions]);
+  const userDistribution = React.useMemo(() => {
+    if (!users || users.length === 0) return [];
+    return [...users].sort((a, b) => b.score - a.score).slice(0, 10);
+  }, [users]);
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
@@ -378,7 +381,7 @@ function AnalyticsTab() {
         <div className="w-full h-96 p-8 border rounded-3xl bg-card/20 backdrop-blur-sm shadow-inner">
           {usersLoading ? <div className="flex items-center justify-center h-full text-muted-foreground animate-pulse font-mono">Synthesizing telemetry...</div> :
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={users ? [...users].sort((a, b) => b.score - a.score).slice(0, 10) : []}>
+              <BarChart data={userDistribution}>
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.05} vertical={false} />
                 <XAxis dataKey="name" stroke="#888" fontSize={10} tickLine={false} axisLine={false} />
                 <YAxis stroke="#888" fontSize={10} tickLine={false} axisLine={false} />
@@ -394,7 +397,7 @@ function AnalyticsTab() {
         <div className="w-full h-96 p-8 border rounded-3xl bg-card/20 backdrop-blur-sm shadow-inner">
           {submissionsLoading ? <div className="flex items-center justify-center h-full text-muted-foreground animate-pulse font-mono">Tracing temporal data...</div> :
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={submissionsOverTime || []}>
+              <LineChart data={submissionsOverTime}>
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.05} vertical={false} />
                 <XAxis dataKey="name" stroke="#888" fontSize={10} tickLine={false} axisLine={false} />
                 <YAxis stroke="#888" fontSize={10} tickLine={false} axisLine={false} />
