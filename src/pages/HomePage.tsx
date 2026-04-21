@@ -145,7 +145,7 @@ export function HomePage() {
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
             >
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-indigo/10 border border-brand-indigo/20 text-brand-indigo text-xs font-black uppercase tracking-[0.2em] mb-8 shadow-sm">
                 <Cloud className="h-4 w-4" />
@@ -186,7 +186,7 @@ export function HomePage() {
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 1, delay: 0.2 }}
+            transition={{ duration: 1, delay: 0.4 }}
             className="flex justify-center pb-32"
           >
             <ErrorBoundary>
