@@ -1,6 +1,6 @@
 # Catch the Cloud CTF
 A lightweight, visually exceptional Capture-The-Flag (CTF) platform built to run at the Cloudflare edge using Workers and Durable Objects. It supports up to 10 active users, featuring a public scoreboard, challenge gallery, per-challenge solve UI, and an admin panel for managing challenges and viewing user scores. The platform emphasizes a polished, responsive, and accessible UI with shadcn/ui and Tailwind CSS, delivering delightful interactions and seamless performance.
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/samertalalsadeq-stack/flagforge-ctf)
 ## Key Features
 - **Public Scoreboard**: Real-time leaderboard showing top players with scores, solved challenges, and timestamps.
 - **Challenge Gallery**: Responsive grid of challenges with difficulty badges, points, descriptions, tags, and quick navigation to solve pages.
@@ -101,7 +101,7 @@ For production:
 - Set up custom domain via Wrangler.
 - Monitor with Cloudflare Observability.
 - Migrate mock auth to real (e.g., OAuth) and secure the admin token.
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/samertalalsadeq-stack/flagforge-ctf)
 ## Contributing
 1. Fork the repository.
 2. Create a feature branch: `git checkout -b feature/amazing-feature`.
