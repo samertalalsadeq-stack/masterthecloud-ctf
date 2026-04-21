@@ -155,7 +155,7 @@ export function HomePage() {
                 Master the <span className="text-gradient">Cloud</span>
               </h1>
               <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed mb-16 font-medium">
-                The ultimate capture-the-flag proving ground. 
+                The ultimate capture-the-flag proving ground.
                 Experience a lightning-fast CTF platform running on the global edge.
               </p>
               <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
@@ -203,7 +203,7 @@ export function HomePage() {
         </div>
         <footer className="py-12 border-t border-border/10 text-center relative z-10 bg-background/50 backdrop-blur-sm">
           <p className="text-sm text-muted-foreground font-mono uppercase tracking-widest opacity-60">
-            Powered by Cloudflare Durable Objects • Master the Cloud Protocol v1.0.42
+            Powered by Cloudflare Durable Objects • Master the Cloud Protocol [masterthecloud-ctf] v1.1.0
           </p>
         </footer>
       </main>

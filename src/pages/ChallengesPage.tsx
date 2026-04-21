@@ -121,7 +121,7 @@ export function ChallengesPage() {
       } else {
         prev.delete(key);
       }
-      prev.delete('cursor'); // Reset cursor on filter change
+      prev.delete('cursor');
       return prev;
     });
   };
@@ -152,7 +152,7 @@ export function ChallengesPage() {
             transition={{ duration: 0.5 }}
             className="text-center mb-16"
           >
-            <h1 className="text-5xl md:text-6xl font-display font-black tracking-tight leading-tight">Master the <span className="text-gradient">Edge</span></h1>
+            <h1 className="text-5xl md:text-6xl font-display font-black tracking-tight leading-tight">Master the <span className="text-gradient">Cloud</span></h1>
             <p className="mt-6 text-xl text-muted-foreground max-w-2xl mx-auto font-medium">
               Validate your cybersecurity expertise through real-world scenarios deployed globally at the Cloudflare edge.
             </p>
@@ -249,8 +249,8 @@ export function ChallengesPage() {
           </div>
           <div className="flex justify-center mt-16">
             {data?.next && (
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 variant="outline"
                 className="h-14 px-10 rounded-2xl text-xl font-black border-2 hover:bg-accent/50 transition-all active:scale-95"
                 onClick={() => {

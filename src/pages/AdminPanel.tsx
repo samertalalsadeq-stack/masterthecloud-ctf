@@ -444,7 +444,7 @@ export function AdminPanel() {
               className="self-start mb-8 group hover:bg-accent/50 transition-all duration-200"
             >
               <ChevronLeft className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
-              <span className="font-bold">Return to Public Sector</span>
+              <span className="font-bold">Return to Master the Cloud</span>
             </Button>
             <div className="flex-grow flex items-center justify-center">
               <motion.div
@@ -510,7 +510,7 @@ export function AdminPanel() {
                 Exit Console
               </Button>
               <div>
-                <h1 className="text-5xl font-black font-display tracking-tight leading-none mb-2">Edge <span className="text-gradient">Control</span></h1>
+                <h1 className="text-5xl font-black font-display tracking-tight leading-none mb-2">Master the Cloud: <span className="text-gradient">Command Center</span></h1>
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                   <p className="text-muted-foreground text-xs uppercase tracking-[0.3em] font-black">Authorized Operations Only</p>
