@@ -40,39 +40,34 @@ body {
 .btn-gradient:active {
   transform: scale(0.98);
 }
-/*
-   FORCED HIGH-VISIBILITY OVERRIDES
-   Ensures Dialogs and AlertMenus are readable regardless of theme state.
+/* 
+   REFINED HIGH-VISIBILITY OVERRIDES
+   Targets only modal dialog content to maintain accessibility standards 
+   without breaking non-modal components like sidebars.
 */
-[role="dialog"][class*="fixed"],
-[role="alertdialog"][class*="fixed"] {
+[data-state="open"] > [class*="DialogContent"],
+[data-state="open"] > [class*="AlertDialogContent"],
+.fixed.inset-0.z-50.bg-background\/80.backdrop-blur-sm ~ .fixed.z-50 {
   background-color: #ffffff !important;
   color: #0f172a !important;
   border: 1px solid #e2e8f0 !important;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3) !important;
 }
-[role="dialog"] h2, [role="dialog"] h3,
-[role="alertdialog"] h2, [role="alertdialog"] h3 {
+[data-state="open"] h2, [data-state="open"] h3 {
   color: #0f172a !important;
   font-weight: 800 !important;
 }
-[role="dialog"] p, [role="alertdialog"] p {
+[data-state="open"] p {
   color: #475569 !important;
 }
-[role="dialog"] label {
+[data-state="open"] label {
   color: #1e293b !important;
   font-weight: 700 !important;
-  font-size: 0.875rem !important;
 }
-[role="dialog"] input, [role="dialog"] textarea {
+[data-state="open"] input, [data-state="open"] textarea {
   background-color: #ffffff !important;
   color: #0f172a !important;
   border-color: #cbd5e1 !important;
-  border-width: 2px !important;
-}
-[role="dialog"] input:focus {
-  border-color: #6366f1 !important;
-  outline: none !important;
 }
 /* Custom Scrollbars */
 ::-webkit-scrollbar {

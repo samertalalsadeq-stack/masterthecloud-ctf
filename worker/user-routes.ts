@@ -17,12 +17,12 @@ const challengeSchema = z.object({
   codeLanguage: z.string().optional(),
   codeSnippet: z.string().optional(),
 });
-export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } }>) {
+type MasterEnv = Env & { ADMIN_TOKEN?: string };
+export function userRoutes(app: Hono<{ Bindings: MasterEnv }>) {
   // --- Resilient Seeding Middleware ---
   app.use('/api/*', async (c, next) => {
     if (!isSeeded) {
       try {
-        // Parallelized check ensures efficiency and atomic-like seeding if needed
         await Promise.all([
           UserEntity.ensureSeed(c.env),
           ChallengeEntity.ensureSeed(c.env),
@@ -98,12 +98,10 @@ export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } 
     if (flag.trim() !== challenge.flag) {
       return bad(c, 'Incorrect flag. Try harder!');
     }
-    // Atomic-like check for first-blood using submission index
     const { items: allSubmissions } = await SubmissionEntity.list(c.env, null, 2000);
     const isFirstBlood = !allSubmissions.some(s => s.challengeId === challengeId);
     let pointsAwarded = challenge.points;
     if (isFirstBlood) pointsAwarded += 50;
-    // Persist score and solved list
     await userEntity.mutate(u => ({
       ...u,
       score: u.score + pointsAwarded,
@@ -146,6 +144,9 @@ export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } 
         lastSolveTs: lastSolve,
       };
     }).sort((a, b) => {
+      // 0 Score users always at bottom
+      if (a.score === 0 && b.score > 0) return 1;
+      if (b.score === 0 && a.score > 0) return -1;
       // Primary: Score (Descending)
       if (b.score !== a.score) return b.score - a.score;
       // Secondary: Time of last solve (Ascending - earlier solve ranks higher)
@@ -154,7 +155,6 @@ export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } 
         if (b.lastSolveTs === 0) return -1;
         return a.lastSolveTs - b.lastSolveTs;
       }
-      // Tertiary: Alphabetical name (Ascending)
       return a.name.localeCompare(b.name);
     });
     return ok(c, scoreboard);
@@ -176,11 +176,11 @@ export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } 
     return ok(c, await UserEntity.create(c.env, user));
   });
   // --- Admin Routes ---
-  const admin = new Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } }>();
+  const admin = new Hono<{ Bindings: MasterEnv }>();
   admin.use('*', async (c, next) => {
     const configuredToken = c.env.ADMIN_TOKEN || DEFAULT_ADMIN_TOKEN;
     if (c.req.header('x-admin-token') !== configuredToken) {
-      return c.json({ success: false, error: 'Master the Cloud: Unauthorized Command Center Access' }, 401);
+      return c.json({ success: false, error: 'Unauthorized Command Center Access' }, 401);
     }
     await next();
   });

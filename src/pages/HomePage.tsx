@@ -141,40 +141,40 @@ export function HomePage() {
         <div className="absolute inset-0 bg-gradient-mesh opacity-[0.05] dark:opacity-[0.1] pointer-events-none" />
         <ThemeToggle />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-grow relative z-10">
-          <div className="py-20 md:py-28 lg:py-40 text-center relative">
+          <div className="py-20 md:py-32 lg:py-48 text-center relative">
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.2, ease: "easeOut" }}
             >
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-indigo/10 border border-brand-indigo/20 text-brand-indigo text-xs font-black uppercase tracking-[0.2em] mb-8 shadow-sm">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-indigo/10 border border-brand-indigo/20 text-brand-indigo text-xs font-black uppercase tracking-[0.2em] mb-10 shadow-sm">
                 <Cloud className="h-4 w-4" />
                 Master the Cloud: Active Protocol
               </div>
-              <h1 className="text-6xl md:text-8xl font-display font-black text-balance leading-none mb-10 tracking-tight">
+              <h1 className="text-6xl md:text-8xl font-display font-black text-balance leading-none mb-12 tracking-tight">
                 Master the <span className="text-gradient">Cloud</span>
               </h1>
-              <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed mb-16 font-medium">
-                The elite Capture-The-Flag platform running globally at the edge. 
+              <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed mb-20 font-medium">
+                The elite Capture-The-Flag platform running globally at the edge.
                 Prove your expertise through real-world scenarios designed for the modern cloud.
               </p>
-              <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
+              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
                 {!isLoggedIn ? (
                   <Button
                     onClick={() => setLoginModalOpen(true)}
                     size="lg"
-                    className="btn-gradient min-w-[240px] h-16 text-xl font-black rounded-2xl shadow-2xl shadow-primary/20 active:scale-95 transition-all"
+                    className="btn-gradient min-w-[260px] h-16 text-xl font-black rounded-2xl shadow-2xl shadow-primary/20 active:scale-95 transition-all"
                   >
                     <LogIn className="mr-2 h-6 w-6" /> Join the Hunt
                   </Button>
                 ) : (
-                  <Button asChild size="lg" className="btn-gradient min-w-[240px] h-16 text-xl font-black rounded-2xl shadow-2xl active:scale-95 transition-all">
+                  <Button asChild size="lg" className="btn-gradient min-w-[260px] h-16 text-xl font-black rounded-2xl shadow-2xl active:scale-95 transition-all">
                     <Link to="/challenges">
                       <Shield className="mr-2 h-6 w-6" /> Explore Challenges
                     </Link>
                   </Button>
                 )}
-                <Button asChild size="lg" variant="outline" className="min-w-[240px] h-16 text-xl font-black rounded-2xl backdrop-blur-md border-border/50 hover:bg-accent/10 active:scale-95 transition-all">
+                <Button asChild size="lg" variant="outline" className="min-w-[260px] h-16 text-xl font-black rounded-2xl backdrop-blur-md border-border/50 hover:bg-accent/10 active:scale-95 transition-all">
                   <Link to="/admin">
                     <UserCheck className="mr-2 h-6 w-6" /> Command Center
                   </Link>
@@ -186,7 +186,7 @@ export function HomePage() {
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 1, delay: 0.4 }}
+            transition={{ duration: 1, delay: 0.5 }}
             className="flex justify-center pb-32"
           >
             <ErrorBoundary>
