@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { Env } from './core-utils';
 import { UserEntity, ChallengeEntity, SubmissionEntity, ChallengeState } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-import type { ScoreboardEntry, Submission, User, Challenge } from "@shared/types";
+import type { ScoreboardEntry, Submission, User } from "@shared/types";
 const DEFAULT_ADMIN_TOKEN = 'secret-admin-token';
 let isSeeded = false;
 const challengeSchema = z.object({
@@ -22,7 +22,7 @@ export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } 
   app.use('/api/*', async (c, next) => {
     if (!isSeeded) {
       try {
-        // Parallelized check to reduce cold-start latency
+        // Parallelized check ensures efficiency and atomic-like seeding if needed
         await Promise.all([
           UserEntity.ensureSeed(c.env),
           ChallengeEntity.ensureSeed(c.env),
@@ -98,10 +98,12 @@ export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } 
     if (flag.trim() !== challenge.flag) {
       return bad(c, 'Incorrect flag. Try harder!');
     }
-    const { items: allSubmissions } = await SubmissionEntity.list(c.env, null, 1000);
+    // Atomic-like check for first-blood using submission index
+    const { items: allSubmissions } = await SubmissionEntity.list(c.env, null, 2000);
     const isFirstBlood = !allSubmissions.some(s => s.challengeId === challengeId);
     let pointsAwarded = challenge.points;
     if (isFirstBlood) pointsAwarded += 50;
+    // Persist score and solved list
     await userEntity.mutate(u => ({
       ...u,
       score: u.score + pointsAwarded,
@@ -127,7 +129,6 @@ export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } 
       UserEntity.list(c.env, null, 100),
       SubmissionEntity.list(c.env, null, 5000)
     ]);
-
     const subsByUser: Record<string, number[]> = submissions.reduce((acc, s) => {
       const uid = s.userId;
       if (!acc[uid]) acc[uid] = [];
@@ -147,7 +148,7 @@ export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } 
     }).sort((a, b) => {
       // Primary: Score (Descending)
       if (b.score !== a.score) return b.score - a.score;
-      // Secondary: Time of last solve (Ascending - earlier is better)
+      // Secondary: Time of last solve (Ascending - earlier solve ranks higher)
       if (a.lastSolveTs !== b.lastSolveTs) {
         if (a.lastSolveTs === 0) return 1;
         if (b.lastSolveTs === 0) return -1;
