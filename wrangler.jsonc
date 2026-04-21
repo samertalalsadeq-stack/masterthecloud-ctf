@@ -4,7 +4,7 @@
  */
  {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "flagforge-fhaot_uip7mnyrlrhqicm",
+	"name": "masterthecloud-ctf",
 	"main": "worker/index.ts",
 	"compatibility_date": "2025-04-24",
 	"assets": {
