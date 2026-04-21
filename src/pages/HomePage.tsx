@@ -203,7 +203,7 @@ export function HomePage() {
         </div>
         <footer className="py-12 border-t border-border/10 text-center relative z-10 bg-background/50 backdrop-blur-sm">
           <p className="text-sm text-muted-foreground font-mono uppercase tracking-widest opacity-60">
-            Powered by Cloudflare Durable Objects • Master the Cloud Protocol [masterthecloud-ctf] v1.1.0
+            Powered by Cloudflare Durable Objects • Master the Cloud Protocol [masterthecloud-ctf] v1.1.1
           </p>
         </footer>
       </main>
