@@ -7,7 +7,7 @@ export interface PaginatedResponse<T> {
   items: T[];
   next?: string | null;
 }
-// --- FlagForge CTF Types ---
+// --- Master the Cloud CTF Types ---
 export type ChallengeDifficulty = 'Easy' | 'Medium' | 'Hard' | 'Insane';
 export interface Challenge {
   id: string;
