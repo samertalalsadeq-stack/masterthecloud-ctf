@@ -180,7 +180,7 @@ export function userRoutes(app: Hono<{ Bindings: Env & { ADMIN_TOKEN?: string } 
   admin.use('*', async (c, next) => {
     const configuredToken = c.env.ADMIN_TOKEN || DEFAULT_ADMIN_TOKEN;
     if (c.req.header('x-admin-token') !== configuredToken) {
-      return c.json({ success: false, error: 'Unauthorized Administrative Access' }, 401);
+      return c.json({ success: false, error: 'Master the Cloud: Unauthorized Command Center Access' }, 401);
     }
     await next();
   });

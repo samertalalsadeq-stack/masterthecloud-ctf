@@ -23,7 +23,7 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
     return sorted[0] || null;
   }, [entries]);
   return (
-    <Card className="w-full max-w-2xl bg-card/50 backdrop-blur-md border-border/50 shadow-2xl rounded-2xl overflow-hidden group">
+    <Card className="w-full max-w-2xl bg-card/50 backdrop-blur-md border-border/50 shadow-2xl rounded-2xl overflow-hidden group mx-auto">
       <CardHeader className="border-b border-border/10 bg-muted/20">
         <CardTitle className="flex items-center justify-between text-2xl font-display">
           <div className="flex items-center gap-2">
@@ -98,7 +98,7 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
                       {entry.solvedCount} {entry.solvedCount === 1 ? 'CAPTURE' : 'CAPTURES'}
                     </span>
                     <span className="text-[10px] text-muted-foreground italic">
-                      {entry.lastSolveTs ? formatDistanceToNow(new Date(entry.lastSolveTs), { addSuffix: true }) : 'Ghosting...'}
+                      {entry.lastSolveTs ? formatDistanceToNow(new Date(entry.lastSolveTs), { addSuffix: true }) : 'Waiting for breach...'}
                     </span>
                   </div>
                 </div>
@@ -111,9 +111,9 @@ const ScoreboardCard = ({ entries, isLoading }: { entries?: ScoreboardEntry[], i
                 <Cloud className="w-16 h-16 text-primary/20" />
                 <Zap className="w-8 h-8 text-primary absolute bottom-0 right-0 animate-bounce" />
               </div>
-              <h3 className="text-xl font-bold mb-2">The Fog is Lifting...</h3>
+              <h3 className="text-xl font-bold mb-2">The Perimeter is Silent</h3>
               <p className="text-muted-foreground text-sm max-w-xs mx-auto mb-6">
-                Nobody has conquered a challenge yet. Be the first to strike and claim your spot on the leaderboard.
+                No active captures detected. Lead the first successful breach to claim your spot on the scoreboard.
               </p>
               <Button asChild variant="secondary" className="rounded-xl font-bold">
                 <Link to="/challenges">Take the First Step</Link>
@@ -149,14 +149,14 @@ export function HomePage() {
             >
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-indigo/10 border border-brand-indigo/20 text-brand-indigo text-xs font-black uppercase tracking-[0.2em] mb-8 shadow-sm">
                 <Cloud className="h-4 w-4" />
-                Edge-Powered Security Protocol
+                Master the Cloud: Active Protocol
               </div>
               <h1 className="text-6xl md:text-8xl font-display font-black text-balance leading-none mb-10 tracking-tight">
                 Master the <span className="text-gradient">Cloud</span>
               </h1>
               <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed mb-16 font-medium">
-                The ultimate capture-the-flag proving ground.
-                Experience a lightning-fast CTF platform running on the global edge.
+                The elite Capture-The-Flag platform running globally at the edge. 
+                Prove your expertise through real-world scenarios designed for the modern cloud.
               </p>
               <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
                 {!isLoggedIn ? (
@@ -176,7 +176,7 @@ export function HomePage() {
                 )}
                 <Button asChild size="lg" variant="outline" className="min-w-[240px] h-16 text-xl font-black rounded-2xl backdrop-blur-md border-border/50 hover:bg-accent/10 active:scale-95 transition-all">
                   <Link to="/admin">
-                    <UserCheck className="mr-2 h-6 w-6" /> Admin Console
+                    <UserCheck className="mr-2 h-6 w-6" /> Command Center
                   </Link>
                 </Button>
               </div>
@@ -191,9 +191,9 @@ export function HomePage() {
           >
             <ErrorBoundary>
               {isError ? (
-                <Card className="w-full max-w-2xl bg-destructive/5 border-destructive/20 p-8 text-center rounded-2xl">
+                <Card className="w-full max-w-2xl bg-destructive/5 border-destructive/20 p-8 text-center rounded-2xl mx-auto">
                   <h3 className="text-lg font-bold text-destructive mb-2">Rankings Offline</h3>
-                  <p className="text-muted-foreground text-sm">We're having trouble reaching the command center. Please refresh the page.</p>
+                  <p className="text-muted-foreground text-sm">Synchronisation error with the edge command. Please check your protocol and refresh.</p>
                 </Card>
               ) : (
                 <ScoreboardCard entries={scoreboard} isLoading={isLoading} />
@@ -203,7 +203,7 @@ export function HomePage() {
         </div>
         <footer className="py-12 border-t border-border/10 text-center relative z-10 bg-background/50 backdrop-blur-sm">
           <p className="text-sm text-muted-foreground font-mono uppercase tracking-widest opacity-60">
-            Powered by Cloudflare Durable Objects • Master the Cloud Protocol [masterthecloud-ctf] v1.2.0
+            Powered by Cloudflare Durable Objects • Master the Cloud CTF v1.2.0
           </p>
         </footer>
       </main>
