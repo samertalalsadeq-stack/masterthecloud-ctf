@@ -155,7 +155,7 @@ export function HomePage() {
                 Master the <span className="text-gradient">Cloud</span>
               </h1>
               <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed mb-20 font-medium">
-                The elite Capture-The-Flag platform running globally at the edge.
+                The elite Capture-The-Flag platform running globally at the edge. 
                 Prove your expertise through real-world scenarios designed for the modern cloud.
               </p>
               <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">

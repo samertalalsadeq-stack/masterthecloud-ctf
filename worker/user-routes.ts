@@ -1,9 +1,11 @@
 import { Hono } from "hono";
 import { z } from 'zod';
 import type { Env } from './core-utils';
-import { UserEntity, ChallengeEntity, SubmissionEntity, ChallengeState } from "./entities";
+import { UserEntity, ChallengeEntity, SubmissionEntity } from "./entities";
+import type { ChallengeState } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
 import type { ScoreboardEntry, Submission, User } from "@shared/types";
+console.log('[WORKER] Loading Master the Cloud protocols...');
 const DEFAULT_ADMIN_TOKEN = 'secret-admin-token';
 let isSeeded = false;
 const challengeSchema = z.object({
@@ -18,8 +20,8 @@ const challengeSchema = z.object({
   codeSnippet: z.string().optional(),
 });
 type MasterEnv = Env & { ADMIN_TOKEN?: string };
-export function userRoutes(app: Hono<{ Bindings: MasterEnv }>) {
-  // --- Resilient Seeding Middleware ---
+export function userRoutes(app: Hono<{ Bindings: Env }>) {
+  // Use a type-safe middleware to ensure the environment matches our MasterEnv needs
   app.use('/api/*', async (c, next) => {
     if (!isSeeded) {
       try {
@@ -117,9 +119,9 @@ export function userRoutes(app: Hono<{ Bindings: MasterEnv }>) {
       isFirstBlood,
     };
     await SubmissionEntity.create(c.env, submission);
-    return ok(c, {
-      message: `Correct flag! Protocol verified. ${isFirstBlood ? 'First Blood bonus awarded!' : ''}`,
-      pointsAwarded
+    return ok(c, { 
+      message: `Correct flag! Protocol verified. ${isFirstBlood ? 'First Blood bonus awarded!' : ''}`, 
+      pointsAwarded 
     });
   });
   app.get('/api/scoreboard', async (c) => {
@@ -144,12 +146,9 @@ export function userRoutes(app: Hono<{ Bindings: MasterEnv }>) {
         lastSolveTs: lastSolve,
       };
     }).sort((a, b) => {
-      // 0 Score users always at bottom
       if (a.score === 0 && b.score > 0) return 1;
       if (b.score === 0 && a.score > 0) return -1;
-      // Primary: Score (Descending)
       if (b.score !== a.score) return b.score - a.score;
-      // Secondary: Time of last solve (Ascending - earlier solve ranks higher)
       if (a.lastSolveTs !== b.lastSolveTs) {
         if (a.lastSolveTs === 0) return 1;
         if (b.lastSolveTs === 0) return -1;
@@ -176,9 +175,10 @@ export function userRoutes(app: Hono<{ Bindings: MasterEnv }>) {
     return ok(c, await UserEntity.create(c.env, user));
   });
   // --- Admin Routes ---
-  const admin = new Hono<{ Bindings: MasterEnv }>();
+  const admin = new Hono<{ Bindings: Env }>();
   admin.use('*', async (c, next) => {
-    const configuredToken = c.env.ADMIN_TOKEN || DEFAULT_ADMIN_TOKEN;
+    const masterEnv = c.env as MasterEnv;
+    const configuredToken = masterEnv.ADMIN_TOKEN || DEFAULT_ADMIN_TOKEN;
     if (c.req.header('x-admin-token') !== configuredToken) {
       return c.json({ success: false, error: 'Unauthorized Command Center Access' }, 401);
     }

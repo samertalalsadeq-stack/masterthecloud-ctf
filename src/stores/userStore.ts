@@ -31,12 +31,12 @@ export const useUserStore = create<UserState>()(
         }
         set(update);
       },
-      logout: () => set({
-        userId: null,
-        userName: null,
-        isLoggedIn: false,
-        adminToken: null,
-        adminTokenExpiry: null
+      logout: () => set({ 
+        userId: null, 
+        userName: null, 
+        isLoggedIn: false, 
+        adminToken: null, 
+        adminTokenExpiry: null 
       }),
       refreshAdminToken: () => {
         const adminTokenExpiry = get().adminTokenExpiry;
@@ -58,7 +58,8 @@ export const useUserStore = create<UserState>()(
     }
   )
 );
-// Export typed primitive hooks to enforce best practices
+// Explicit primitive selectors to avoid infinite loops and render performance issues
 export const useUserId = () => useUserStore(s => s.userId);
+export const useUserName = () => useUserStore(s => s.userName);
 export const useIsLoggedIn = () => useUserStore(s => s.isLoggedIn);
 export const useAdminToken = () => useUserStore(s => s.adminToken);
