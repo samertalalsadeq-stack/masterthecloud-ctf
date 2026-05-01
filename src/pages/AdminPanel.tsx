@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,10 +16,12 @@ import {
   ChevronLeft,
   Activity,
   ShieldAlert,
-  Info
+  Search,
+  FileSpreadsheet
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { format } from 'date-fns';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,7 +30,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api, setAdminToken } from '@/lib/api-client';
 import type { Challenge, User, ChallengeDifficulty, Submission } from '@shared/types';
@@ -262,6 +263,165 @@ function UsersTab() {
     </div>
   );
 }
+function SubmissionsTab() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const { data: submissions, isLoading } = useQuery<Submission[]>({
+    queryKey: ['admin-submissions'],
+    queryFn: () => api('/api/admin/submissions')
+  });
+  const { data: challenges } = useQuery<Challenge[]>({
+    queryKey: ['admin-challenges'],
+    queryFn: () => api('/api/admin/challenges')
+  });
+  const getChallengeTitle = (id: string) => {
+    return challenges?.find(c => c.id === id)?.title || id;
+  };
+  const filteredSubmissions = useMemo(() => {
+    if (!submissions) return [];
+    return submissions.filter(s => 
+      s.userName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      getChallengeTitle(s.challengeId).toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [submissions, searchTerm, challenges]);
+  const exportToCSV = () => {
+    if (!filteredSubmissions.length) return;
+    const headers = ['Timestamp', 'Operator', 'Challenge', 'Points', 'First Blood'];
+    const rows = filteredSubmissions.map(s => [
+      format(s.ts, 'yyyy-MM-dd HH:mm:ss'),
+      s.userName,
+      getChallengeTitle(s.challengeId),
+      s.pointsAwarded,
+      s.isFirstBlood ? 'YES' : 'NO'
+    ]);
+    const csvContent = [headers, ...rows].map(e => e.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `ctf_submissions_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`;
+    link.click();
+    toast.success('Operational data exported to CSV');
+  };
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <h2 className="text-2xl font-black tracking-tight">Capture <span className="text-muted-foreground">Log</span></h2>
+        <div className="flex gap-3 w-full md:w-auto">
+          <div className="relative flex-grow">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search captures..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 h-11 rounded-xl w-full md:w-[300px]"
+            />
+          </div>
+          <Button variant="outline" onClick={exportToCSV} className="h-11 rounded-xl">
+            <FileSpreadsheet className="h-4 w-4 mr-2" /> Export
+          </Button>
+        </div>
+      </div>
+      <div className="border rounded-3xl bg-card/40 backdrop-blur-md overflow-hidden shadow-sm">
+        <Table>
+          <TableHeader className="bg-muted/30">
+            <TableRow>
+              <TableHead className="font-black uppercase tracking-widest text-[10px]">Timestamp</TableHead>
+              <TableHead className="font-black uppercase tracking-widest text-[10px]">Operator</TableHead>
+              <TableHead className="font-black uppercase tracking-widest text-[10px]">Protocol</TableHead>
+              <TableHead className="font-black uppercase tracking-widest text-[10px]">Points</TableHead>
+              <TableHead className="font-black uppercase tracking-widest text-[10px] text-right">Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow><TableCell colSpan={5} className="text-center py-20 font-mono text-xs animate-pulse">Reading log entries...</TableCell></TableRow>
+            ) : filteredSubmissions.length > 0 ? filteredSubmissions.map((s) => (
+              <TableRow key={s.id}>
+                <TableCell className="py-4 text-xs font-mono text-muted-foreground">{format(s.ts, 'MM/dd HH:mm:ss')}</TableCell>
+                <TableCell className="font-bold">{s.userName}</TableCell>
+                <TableCell className="font-medium text-muted-foreground">{getChallengeTitle(s.challengeId)}</TableCell>
+                <TableCell className="font-black tabular-nums">{s.pointsAwarded}</TableCell>
+                <TableCell className="text-right">
+                  {s.isFirstBlood && <Badge className="bg-red-500 hover:bg-red-600 text-[10px] px-1.5 py-0">FIRST BLOOD</Badge>}
+                </TableCell>
+              </TableRow>
+            )) : (
+              <TableRow><TableCell colSpan={5} className="text-center py-20 text-muted-foreground">No capture history found.</TableCell></TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+function IntelligenceTab() {
+  const { data: users } = useQuery<User[]>({
+    queryKey: ['admin-users'],
+    queryFn: () => api('/api/admin/users')
+  });
+  const { data: submissions } = useQuery<Submission[]>({
+    queryKey: ['admin-submissions'],
+    queryFn: () => api('/api/admin/submissions')
+  });
+  const topPlayersData = useMemo(() => {
+    if (!users) return [];
+    return [...users]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8)
+      .map(u => ({ name: u.name, score: u.score }));
+  }, [users]);
+  const submissionsByDay = useMemo(() => {
+    if (!submissions) return [];
+    const counts: Record<string, number> = {};
+    submissions.forEach(s => {
+      const day = format(s.ts, 'MMM dd');
+      counts[day] = (counts[day] || 0) + 1;
+    });
+    return Object.entries(counts).map(([date, count]) => ({ date, count })).reverse().slice(-7);
+  }, [submissions]);
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="p-8 border rounded-3xl bg-card/40 backdrop-blur-md shadow-sm">
+        <h3 className="text-lg font-black tracking-tight mb-8 flex items-center gap-2">
+          <Trophy className="h-5 w-5 text-brand-orange" /> Elite Performance
+        </h3>
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={topPlayersData}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
+              <Tooltip 
+                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontWeight: 'bold' }}
+                cursor={{ fill: '#6366f111' }}
+              />
+              <Bar dataKey="score" radius={[8, 8, 0, 0]}>
+                {topPlayersData.map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#6366f1' : '#F38020'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+      <div className="p-8 border rounded-3xl bg-card/40 backdrop-blur-md shadow-sm">
+        <h3 className="text-lg font-black tracking-tight mb-8 flex items-center gap-2">
+          <Activity className="h-5 w-5 text-brand-indigo" /> Capture Velocity
+        </h3>
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={submissionsByDay}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
+              <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontWeight: 'bold' }} />
+              <Line type="monotone" dataKey="count" stroke="#6366f1" strokeWidth={4} dot={{ r: 6, fill: '#6366f1', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 8 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+}
 export function AdminPanel() {
   const [token, setToken] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -361,12 +521,28 @@ export function AdminPanel() {
               <TabsTrigger value="challenges" className="flex-1 rounded-2xl font-black uppercase text-sm h-full">
                 <ClipboardList className="w-5 h-5 mr-2" />Protocols
               </TabsTrigger>
+              <TabsTrigger value="intelligence" className="flex-1 rounded-2xl font-black uppercase text-sm h-full">
+                <BarChart2 className="w-5 h-5 mr-2" />Intelligence
+              </TabsTrigger>
+              <TabsTrigger value="submissions" className="flex-1 rounded-2xl font-black uppercase text-sm h-full">
+                <Activity className="w-5 h-5 mr-2" />Submissions
+              </TabsTrigger>
               <TabsTrigger value="users" className="flex-1 rounded-2xl font-black uppercase text-sm h-full">
                 <Users className="w-5 h-5 mr-2" />Operators
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="challenges"><ChallengesTab /></TabsContent>
-            <TabsContent value="users"><UsersTab /></TabsContent>
+            <TabsContent value="challenges" className="focus-visible:outline-none">
+              <ChallengesTab />
+            </TabsContent>
+            <TabsContent value="intelligence" className="focus-visible:outline-none">
+              <IntelligenceTab />
+            </TabsContent>
+            <TabsContent value="submissions" className="focus-visible:outline-none">
+              <SubmissionsTab />
+            </TabsContent>
+            <TabsContent value="users" className="focus-visible:outline-none">
+              <UsersTab />
+            </TabsContent>
           </Tabs>
         </div>
       </div>
