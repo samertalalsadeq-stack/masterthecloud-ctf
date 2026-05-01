@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,7 +17,8 @@ import {
   Activity,
   ShieldAlert,
   Search,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Trophy
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
@@ -273,16 +274,16 @@ function SubmissionsTab() {
     queryKey: ['admin-challenges'],
     queryFn: () => api('/api/admin/challenges')
   });
-  const getChallengeTitle = (id: string) => {
+  const getChallengeTitle = useCallback((id: string) => {
     return challenges?.find(c => c.id === id)?.title || id;
-  };
+  }, [challenges]);
   const filteredSubmissions = useMemo(() => {
     if (!submissions) return [];
-    return submissions.filter(s => 
-      s.userName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    return submissions.filter(s =>
+      s.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       getChallengeTitle(s.challengeId).toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [submissions, searchTerm, challenges]);
+  }, [submissions, searchTerm, getChallengeTitle]);
   const exportToCSV = () => {
     if (!filteredSubmissions.length) return;
     const headers = ['Timestamp', 'Operator', 'Challenge', 'Points', 'First Blood'];
@@ -308,8 +309,8 @@ function SubmissionsTab() {
         <div className="flex gap-3 w-full md:w-auto">
           <div className="relative flex-grow">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search captures..." 
+            <Input
+              placeholder="Search captures..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 h-11 rounded-xl w-full md:w-[300px]"
@@ -390,7 +391,7 @@ function IntelligenceTab() {
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
               <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
-              <Tooltip 
+              <Tooltip
                 contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontWeight: 'bold' }}
                 cursor={{ fill: '#6366f111' }}
               />
